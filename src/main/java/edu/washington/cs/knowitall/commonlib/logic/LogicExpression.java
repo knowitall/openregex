@@ -50,9 +50,17 @@ public class LogicExpression<E> implements Predicate<E> {
         List<Tok> tokens = tokenize(input, factory);
         expression = compile(tokens);
     }
+    
+    public boolean isEmpty() {
+        return this.expression.size() == 0;
+    }
 
     @SuppressWarnings("unchecked")
     public boolean apply(E target) {
+        if (this.isEmpty()) {
+            return true;
+        }
+        
         Stack<Tok> stack = new Stack<Tok>();
         for (Tok tok : expression) {
             if (tok instanceof Tok.Arg<?>) {
