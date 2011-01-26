@@ -75,7 +75,6 @@ public class LogicExpression<E> implements Predicate<E> {
             }
         }
 
-        /*
         if (stack.size() > 1) {
             throw new ApplyLogicException(
                     "Stack has multiple elements after apply.");
@@ -90,7 +89,6 @@ public class LogicExpression<E> implements Predicate<E> {
             throw new ApplyLogicException(
                     "Stack contains non-argument after apply.");
         }
-        */
 
         return ((Tok.Arg<E>) stack.pop()).apply(target);
     }
@@ -156,7 +154,7 @@ public class LogicExpression<E> implements Predicate<E> {
                             parens.pop();
                         }
                     }
-                    else if (c == '&' && c == '|') {
+                    else if (c == '&' || c == '|') {
                         break;
                     }
                 }

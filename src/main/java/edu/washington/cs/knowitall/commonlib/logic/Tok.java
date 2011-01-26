@@ -72,6 +72,11 @@ public class Tok {
             public boolean apply() {
                 return value;
             }
+            
+            @Override
+            public String toString() {
+                return Boolean.toString(this.value);
+            }
         }
     }
 
