@@ -11,7 +11,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 
 public class LogicExpression<E> implements Predicate<E> {
-    public static class LogicException extends Exception {
+    public static class LogicException extends RuntimeException {
         private static final long serialVersionUID = 1L;
 
         public LogicException(String message) {
@@ -139,26 +139,29 @@ public class LogicExpression<E> implements Predicate<E> {
                 tokens.add(new Tok.Op.Bin.Or<E>());
                 i += 1;
             } else {
-                int nextToken = substring.length();
-                int index;
+                Stack<Character> parens = new Stack<Character>();
+                
+                int nextToken;
+                for (nextToken = 1; nextToken < substring.length(); nextToken++) {
+                    char c = substring.charAt(nextToken);
+                    
+                    if (c == '(') {
+                        parens.push(c);
+                    }
+                    else if (c == ')') {
+                        if (parens.isEmpty()) {
+                            break;
+                        }
+                        else {
+                            parens.pop();
+                        }
+                    }
+                    else if (c == '&' && c == '|') {
+                        break;
+                    }
+                }
 
-                index = substring.indexOf('(');
-                if (index > 0 && index < nextToken)
-                    nextToken = index;
-                index = substring.indexOf(')');
-                if (index > 0 && index < nextToken)
-                    nextToken = index;
-                index = substring.indexOf("&");
-                if (index > 0 && index < nextToken)
-                    nextToken = index;
-                index = substring.indexOf("|");
-                if (index > 0 && index < nextToken)
-                    nextToken = index;
-                index = substring.indexOf(" ");
-                if (index > 0 && index < nextToken)
-                    nextToken = index;
-
-                String token = substring.substring(0, nextToken);
+                String token = substring.substring(0, nextToken).trim();
                 tokens.add(factory.buildArg(token));
                 i += token.length();
             }

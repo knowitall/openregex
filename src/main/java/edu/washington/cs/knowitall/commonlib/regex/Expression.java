@@ -15,6 +15,11 @@ public interface Expression<E> extends Predicate<E> {
         public boolean apply(E entity) {
             return this.expr.apply(entity);
         }
+        
+        @Override
+        public String toString() {
+            return this.expr.toString() + "*";
+        }
     }
     
     public static class Plus<E> implements Expression<E> {
@@ -27,6 +32,11 @@ public interface Expression<E> extends Predicate<E> {
         @Override
         public boolean apply(E entity) {
             return this.expr.apply(entity);
+        }
+        
+        @Override
+        public String toString() {
+            return this.expr.toString() + "+";
         }
     }
     
@@ -41,6 +51,11 @@ public interface Expression<E> extends Predicate<E> {
         public boolean apply(E entity) {
             return this.expr.apply(entity);
         }
+        
+        @Override
+        public String toString() {
+            return this.expr.toString() + "?";
+        }
     }
     
     static abstract class BaseExpression<E> implements Expression<E> {
@@ -53,7 +68,12 @@ public interface Expression<E> extends Predicate<E> {
         public abstract boolean apply(E arg0);
         
         public String toString() {
-            return this.source;
+            if (this.source.length() > 40) {
+                return "<" + this.source.substring(0, 40) + "...>";
+            }
+            else {
+                return "<" + this.source + ">";
+            }
         }
     }
 }
