@@ -1,5 +1,7 @@
 package edu.washington.cs.knowitall.commonlib.logic;
 
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -9,6 +11,8 @@ import edu.washington.cs.knowitall.commonlib.logic.Tok.Arg;
 public class LogicTest {
     @Test
     public void testRegex1() {
+        Assert.assertEquals("((false & false) & false)", createLogic("false & false & false").toString());
+        
         Assert.assertTrue(createLogic("true & true").apply("true"));
         Assert.assertFalse(createLogic("false & true").apply("true"));
         Assert.assertFalse(createLogic("true & false").apply("true"));
@@ -44,7 +48,27 @@ public class LogicTest {
             Boolean b = (i & 2) != 0;
             Boolean c = (i & 4) != 0;
             Boolean d = (i & 8) != 0;
+            
+            Assert.assertEquals(
+                    (a | b) & (c | d),
+                    createLogic(
+                            createExpression("(a | b) & (c | d)", a, b, c, d))
+                            .apply("true"));
+            
+            Assert.assertEquals(
+                    (a & b) | (c & d),
+                    createLogic(
+                            createExpression("(a & b) | (c & d)", a, b, c, d))
+                            .apply("true"));
         }
+    }
+    
+    public String createExpression(String expr, Boolean a, Boolean b, Boolean c, Boolean d) {
+        return expr
+            .replace("a", Boolean.toString(a))
+            .replace("b", Boolean.toString(b))
+            .replace("c", Boolean.toString(c))
+            .replace("d", Boolean.toString(d));
     }
     
     public LogicExpression<String> createLogic(String logic) {
@@ -52,7 +76,7 @@ public class LogicTest {
             @Override
             public Arg<String> buildArg(final String string)
                     throws TokenizeLogicException {
-                return new Arg<String>() {
+                return new Arg.Pred<String>(string) {
                     @Override
                     public boolean apply(String entity) {
                         return "true".equals(string);
