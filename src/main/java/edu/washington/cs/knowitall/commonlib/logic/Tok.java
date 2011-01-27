@@ -3,50 +3,58 @@ package edu.washington.cs.knowitall.commonlib.logic;
 import com.google.common.base.Predicate;
 
 public class Tok {
-    public static abstract class Op<E> extends Tok {
+    public static abstract class Apply<E> extends Tok {
+        public abstract boolean apply(E entity);
+    }
+    
+    public static abstract class Op<E> extends Apply<E> {
         public static abstract class Bin<E> extends Op<E> {
-            public abstract boolean apply(E entity, Tok.Arg<E> arg1,
-                    Tok.Arg<E> arg2);
+            public Apply<E> left;
+            public Apply<E> right;
+            
+            public String toString(String symbol) {
+                if (left == null || right == null) {
+                    return symbol;
+                }
+                else {
+                    return "(" + left.toString() + " " + symbol + " " + right.toString() + ")";
+                }
+            }
 
             public static class And<E> extends Bin<E> {
                 public String toString() {
-                    return "&";
+                    return super.toString("&");
                 }
 
                 @Override
-                public boolean apply(E entity, Arg<E> arg1, Arg<E> arg2) {
-                    return arg1.apply(entity) && arg2.apply(entity);
+                public boolean apply(E entity) {
+                    return left.apply(entity) && right.apply(entity);
                 }
             }
 
             public static class Or<E> extends Bin<E> {
                 public String toString() {
-                    return "|";
+                    return super.toString("|");
                 }
 
                 @Override
-                public boolean apply(E entity, Arg<E> arg1, Arg<E> arg2) {
-                    return arg1.apply(entity) || arg2.apply(entity);
+                public boolean apply(E entity) {
+                    return left.apply(entity) || right.apply(entity);
                 }
             }
         }
     }
 
-    public static abstract class Arg<E> extends Tok {
-        public abstract boolean apply(E entity);
-
-        public static class Pred<E> extends Arg<E> {
+    public static abstract class Arg<E> extends Apply<E> implements Predicate<E> {
+        public static abstract class Pred<E> extends Arg<E> {
             private String description;
-            private Predicate<E> predicate;
 
-            public Pred(String description, Predicate<E> predicate) {
+            public Pred(String description) {
                 this.description = description;
-                this.predicate = predicate;
             }
 
-            public boolean apply(E entity) {
-                return predicate.apply(entity);
-            }
+            @Override
+            public abstract boolean apply(E entity);
             
             public String getDescription() {
                 return this.description;

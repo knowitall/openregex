@@ -317,7 +317,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
 
         token = expression.trim();
         if (!token.startsWith("<")) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Token does not start with '<'.");
         }
         tokens.add(expression.trim());
 
