@@ -141,7 +141,12 @@ public class LogicExpression<E> implements Predicate<E> {
         while (i < input.length()) {
             String substring = input.substring(i);
             char firstChar = substring.charAt(0);
-            if (firstChar == '(') {
+            
+            if (firstChar == ' ') {
+                i += 1;
+                continue;
+            }
+            else if (firstChar == '(') {
                 tokens.add(new Tok.Paren.L());
                 i += 1;
             } else if (firstChar == ')') {
@@ -184,6 +189,11 @@ public class LogicExpression<E> implements Predicate<E> {
                 }
 
                 String token = substring.substring(0, nextToken).trim();
+                
+                if (token.isEmpty()) {
+                    throw new TokenizeLogicException("zero-length token found.");
+                }
+                
                 tokens.add(factory.buildArg(token));
                 i += token.length();
             }
