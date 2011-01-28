@@ -1,7 +1,5 @@
 package edu.washington.cs.knowitall.commonlib.logic;
 
-import java.util.List;
-
 import org.junit.Assert;
 import org.junit.Test;
 
