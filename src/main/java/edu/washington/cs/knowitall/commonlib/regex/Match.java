@@ -170,6 +170,7 @@ public class Match<E> extends ArrayList<Match.Pair<E>> {
 
     @Override
     public boolean add(Pair<E> pair) {
+        /*
         // check if the last item is the same expression instance
         if (this.size() > 0) {
             Pair<E> last = this.get(this.size() - 1);
@@ -180,7 +181,7 @@ public class Match<E> extends ArrayList<Match.Pair<E>> {
         }
         
         this.tokenCount += pair.tokenCount;
-
+        */
         return super.add(pair);
     }
 

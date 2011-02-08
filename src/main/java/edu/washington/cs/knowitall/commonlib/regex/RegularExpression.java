@@ -84,13 +84,40 @@ public class RegularExpression<E> implements Predicate<List<E>> {
     public Match<E> lookingAt(List<E> tokens, int start) {
         Match<E> match = new Match<E>(tokens.size());
         if (tryRegexDetail(this.expanded, tokens.subList(start, tokens.size()), start, match)) {
-            return convertMatch(match);
+            match = compressMatch(match);
+            match = groupMatch(match);
+            return match;
         } else {
             return null;
         }
     }
     
-    public Match<E> convertMatch(Match<E> oldMatch) {
+    public Match<E> compressMatch(Match<E> oldMatch) {
+        Match<E> match = new Match<E>();
+        
+        Iterator<Match.Pair<E>> matchIterator = oldMatch.iterator();
+        
+        if (matchIterator.hasNext()) { 
+            Match.Pair<E> pair = matchIterator.next();
+            
+            for (Expression<E> expr : this.expanded) {
+                Match.Pair<E> masterPair = pair;
+                while (matchIterator.hasNext() && pair.expr == expr) {
+                    pair = matchIterator.next();
+                    
+                    if (pair.expr == expr) {
+                        masterPair.parts.addAll(pair.parts);
+                    }
+                }
+                
+                match.add(masterPair);
+            }
+        }
+        
+        return match;
+    }
+    
+    public Match<E> groupMatch(Match<E> oldMatch) {
         Match<E> match = new Match<E>();
         
         Iterator<Expression<E>> expressionIterator = this.expressions.iterator();
