@@ -7,6 +7,7 @@ import java.util.List;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 import edu.washington.cs.knowitall.commonlib.Range;
@@ -19,53 +20,103 @@ import edu.washington.cs.knowitall.commonlib.Range;
  * 
  * @param <E>
  */
-public class Match<E> extends ArrayList<Match.Pair<E>> {
+public abstract class Match<E> extends ArrayList<Match.Pair<E>> {
     private static final long serialVersionUID = 1L;
-    private int start;
-    private int tokenCount;
-
-    public int getStart() {
-        return start;
+    
+    public abstract int startIndex();
+    public int endIndex() {
+        // TODO Auto-generated method stub
+        return 0;
     }
+    public abstract List<Pair<E>> groups();
+    public abstract List<E> tokens();
+    
+    protected static class FinalMatch<E> extends Match<E> {
+        private static final long serialVersionUID = 1L;
 
-    public int getEnd() {
-        return this.getStart() + this.tokenCount;
-    }
-
-    public void setStart(int start) {
-        this.start = start;
-    }
-
-    public int tokenCount() {
-        return this.tokenCount;
-    }
-
-    public List<E> tokens() {
-        List<E> tokens = new ArrayList<E>();
-        for (Match.Pair<E> pair : this) {
-            if (pair.expr instanceof Expression.BaseExpression<?>) {
-                tokens.addAll(Lists.transform(pair.tokens,
-                        new Function<Match.Pair.Token<E>, E>() {
-                            @Override
-                            public E apply(Match.Pair.Token<E> token) {
-                                return token.entity;
-                            }
-                        }));
-            }
+        private int startIndex;
+        private List<E> tokens;
+        private List<Pair<E>> groups;
+ 
+        public FinalMatch(Match<E> m) {
+            super(m);
+            this.startIndex = m.startIndex();
+            this.tokens = m.tokens();
+            this.groups = m.groups();
         }
 
-        return tokens;
-    }
-
-    public List<Pair<E>> groups() {
-        List<Pair<E>> groups = new ArrayList<Pair<E>>();
-        for (Pair<E> pair : this) {
-            if (pair.expr instanceof Expression.Group<?>) {
-                groups.add(pair);
-            }
+        public int startIndex() {
+            return this.startIndex;
         }
 
-        return groups;
+        public int endIndex() {
+            return this.startIndex() + this.tokens.size();
+        }
+
+        public List<E> tokens() {
+            return this.tokens;
+        }
+
+        @Override
+        public List<Match.Pair<E>> groups() {
+            return this.groups;
+        }
+    }
+
+    protected static class IntermediateMatch<E> extends Match<E> {
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public List<E> tokens() {
+            List<E> tokens = new ArrayList<E>();
+            for (Match.Pair<E> pair : this) {
+                if (pair.expr instanceof Expression.BaseExpression<?>) {
+                    tokens.addAll(Lists.transform(pair.tokens,
+                            new Function<Match.Pair.Token<E>, E>() {
+                                @Override
+                                public E apply(Match.Pair.Token<E> token) {
+                                    return token.entity;
+                                }
+                            }));
+                }
+            }
+    
+            return tokens;
+        }
+
+        @Override
+        public List<Pair<E>> groups() {
+            List<Pair<E>> groups = new ArrayList<Pair<E>>();
+            for (Pair<E> pair : this) {
+                if (pair.expr instanceof Expression.Group<?>) {
+                    groups.add(pair);
+                }
+            }
+    
+            return groups;
+        }
+
+        @Override
+        public int startIndex() {
+            for (Match.Pair<E> pair : this) {
+                if (pair.expr instanceof Expression.BaseExpression<?>) {
+                    return pair.tokens.get(0).index;
+                }
+            }
+            
+            return -1;
+        }
+        
+        @Override
+        public int endIndex() {
+            for (Match.Pair<E> pair : Iterables.reverse(this)) {
+                if (pair.expr instanceof Expression.BaseExpression<?>) {
+                    return pair.tokens.get(0).index;
+                }
+            }
+            
+            return -1;
+        }
     }
 
     public static class Pair<E> {

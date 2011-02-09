@@ -137,7 +137,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
     */
 
     /***
-     * Find all matches of the regular expression against tokens.
+     * Find all non-overlapping matches of the regular expression against tokens.
      * 
      * @param tokens
      * @return
@@ -151,7 +151,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
             match = this.find(tokens, start);
             
             if (match != null) {
-                start = match.getStart() + 1;
+                start = match.endIndex();
             
                 // match may be empty query string has all optional parts
                 if (!match.isEmpty()) {

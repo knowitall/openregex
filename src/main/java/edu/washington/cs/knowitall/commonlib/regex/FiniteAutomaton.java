@@ -5,6 +5,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
 
+import Mutable.MutableInteger;
+
 import com.google.common.base.Predicate;
 
 import edu.washington.cs.knowitall.commonlib.regex.Expression.BaseExpression;
@@ -28,25 +30,24 @@ public class FiniteAutomaton {
             return this.lookingAt(tokens, this.start, null);
         }
         
-        public Match<E> lookingAt(List<E> tokens) {
+        public Match.FinalMatch<E> lookingAt(List<E> tokens) {
             return lookingAt(tokens, 0);
         }
         
-        public Match<E> lookingAt(List<E> tokens, int startIndex) {
+        public Match.FinalMatch<E> lookingAt(List<E> tokens, int startIndex) {
             List<E> sublist = tokens.subList(startIndex, tokens.size());
             Stack<Edge<E>> edges = new Stack<Edge<E>>();
             if (!this.lookingAt(sublist, this.start, edges)) {
                 return null;
             }
             
-            Match<E> match = new Match<E>();
-            buildMatch(sublist.iterator(), null, startIndex, this.start, edges.iterator(), match);
-            match.setStart(startIndex);
-            return match;
+            Match.IntermediateMatch<E> match = new Match.IntermediateMatch<E>();
+            buildMatch(sublist.iterator(), null, new MutableInteger(startIndex), this.start, edges.iterator(), match);
+            return new Match.FinalMatch<E>(match);
         }
         
-        private State<E> buildMatch(Iterator<E> tokenIterator, Expression<E> expression, int index, State<E> state, Iterator<Edge<E>> edgeIterator, Match<E> match) {
-            Match<E> newMatch = new Match<E>();
+        private State<E> buildMatch(Iterator<E> tokenIterator, Expression<E> expression, MutableInteger index, State<E> state, Iterator<Edge<E>> edgeIterator, Match.IntermediateMatch<E> match) {
+            Match.IntermediateMatch<E> newMatch = new Match.IntermediateMatch<E>();
             
             while (edgeIterator.hasNext() && !((state instanceof EndState<?>) && ((EndState<E>)state).expression == expression)) {
                 Edge<E> edge = edgeIterator.next();
@@ -55,7 +56,8 @@ public class FiniteAutomaton {
                 if (edge.expression != null) {
                     // consume a token, this is the base case
                     E token = tokenIterator.next();
-                    newMatch.add(edge.expression, token, index);
+                    newMatch.add(edge.expression, token, index.value());
+                    index.increment();
                     
                     state = edge.dest;
                 }
