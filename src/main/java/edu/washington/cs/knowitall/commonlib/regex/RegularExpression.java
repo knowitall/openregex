@@ -1,46 +1,29 @@
 package edu.washington.cs.knowitall.commonlib.regex;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 
 import edu.washington.cs.knowitall.commonlib.StringUtils;
 import edu.washington.cs.knowitall.commonlib.regex.Expression.BaseExpression;
+import edu.washington.cs.knowitall.commonlib.regex.FiniteAutomaton.Automaton;
 
 public class RegularExpression<E> implements Predicate<List<E>> {
-    List<Expression<E>> expressions;
-    List<Expression<E>> expanded;
+    public final List<Expression<E>> expressions;
+    public final Automaton<E> auto;
 
     public RegularExpression(String expression, ExpressionFactory<E> factory) {
-        List<Expression<E>> expressions = tokenize(expression, factory);
-
-        this.expressions = expressions;
-
-        if (Iterables.any(expressions, new Predicate<Expression<E>>() {
-            @Override
-            public boolean apply(Expression<E> expr) {
-                return expr instanceof Expression.Group<?>;
-            }
-        })) {
-
-            this.expanded = new ArrayList<Expression<E>>(2 * expressions.size());
-            for (Expression<E> expr : expressions) {
-                if (expr instanceof Expression.Group<?>) {
-                    this.expanded
-                            .addAll(((Expression.Group<E>) expr).expressions);
-                } else {
-                    this.expanded.add(expr);
-                }
-            }
-        } else {
-            this.expanded = expressions;
-        }
+        this.expressions = tokenize(expression, factory);
+        this.auto = this.build(this.expressions);
+    }
+    
+    public Automaton<E> build(List<Expression<E>> exprs) {
+        Expression.Group<E> group = new Expression.Group<E>(exprs);
+        return group.build();
     }
 
     @Override
@@ -82,16 +65,10 @@ public class RegularExpression<E> implements Predicate<List<E>> {
     }
 
     public Match<E> lookingAt(List<E> tokens, int start) {
-        Match<E> match = new Match<E>(tokens.size());
-        if (tryRegexDetail(this.expanded, tokens.subList(start, tokens.size()), start, match)) {
-            match = compressMatch(match);
-            match = groupMatch(match);
-            return match;
-        } else {
-            return null;
-        }
+        return auto.lookingAt(tokens, start);
     }
     
+    /*
     public Match<E> compressMatch(Match<E> oldMatch) {
         Match<E> match = new Match<E>();
         
@@ -116,7 +93,9 @@ public class RegularExpression<E> implements Predicate<List<E>> {
         
         return match;
     }
+    */
     
+    /*
     public Match<E> groupMatch(Match<E> oldMatch) {
         Match<E> match = new Match<E>();
         
@@ -155,6 +134,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
         
         return match;
     }
+    */
 
     /***
      * Find all matches of the regular expression against tokens.
@@ -172,8 +152,11 @@ public class RegularExpression<E> implements Predicate<List<E>> {
             
             if (match != null) {
                 start = match.getStart() + 1;
-                
-                results.add(match);
+            
+                // match may be empty query string has all optional parts
+                if (!match.isEmpty()) {
+                    results.add(match);
+                }
             }
         } while (match != null);
 
@@ -350,66 +333,92 @@ public class RegularExpression<E> implements Predicate<List<E>> {
     public List<Expression<E>> tokenize(String string,
             ExpressionFactory<E> factory) {
         List<Expression<E>> expressions = new ArrayList<Expression<E>>();
-
-        final Pattern tokenPattern = Pattern.compile("\\s*<(.*?)>([*?+])?\\s*");
-        final Pattern orPattern = Pattern.compile("\\s*[|]\\s*");
-
+        
+        final Pattern whitespacePattern = Pattern.compile("\\s+");
+        final Pattern unaryPattern = Pattern.compile("[*?+]");
+        final Pattern binaryPattern = Pattern.compile("[|]");
+        
+        List<String> tokens = new ArrayList<String>();
+        
+        char stack = ' ';
         int start = 0;
         while (start < string.length()) {
             Matcher matcher;
-
-            if (string.charAt(start) == '(') {
-                int end = start;
-                int count = 0;
-                do {
-                    char c = string.charAt(end++);
-                    if (c == '(') {
-                        count++;
-                    } else if (c == ')') {
-                        count--;
-                    }
-                } while (count > 0);
-
-                String group = string.substring(start + 1, end - 1);
-
-                start = end;
-                if (start < string.length()) {
-                    // consume whitespace
-                    while (Character.isWhitespace(string.charAt(start))) {
-                        start++;
-                    }
-                }
-
-                List<Expression<E>> groupExpressions = this.tokenize(group,
-                        factory);
-                expressions.add(new Expression.Group<E>(groupExpressions));
-            } else if ((matcher = tokenPattern.matcher(string)).region(start,
-                    string.length()).lookingAt()) {
+            
+            // skip whitespace
+            if ((matcher = whitespacePattern.matcher(string)).region(start, string.length()).lookingAt()) {
                 start = matcher.end();
-
-                BaseExpression<E> base = factory.create(matcher.group(1));
-                Expression<E> expr = base;
-
-                if (matcher.group(2) != null) {
-                    char operator = matcher.group(2).charAt(0);
-
-                    if (operator == '?') {
-                        expr = new Expression.Option<E>(base);
-                    } else if (operator == '*') {
-                        expr = new Expression.Star<E>(base);
-                    } else if (operator == '+') {
-                        expr = new Expression.Plus<E>(base);
-                    }
+            }
+            
+            // tokenize group
+            if (string.charAt(start) == '(' || string.charAt(start) == '<') {
+                if (string.charAt(start) == '(') {
+                    int end = StringUtils.indexOfClose(string, start, '(', ')');
+                    String group = string.substring(start + 1, end - 1);
+                    start = end;
+                    
+                    List<Expression<E>> groupExpressions = this.tokenize(group,
+                            factory);
+                    expressions.add(new Expression.Group<E>(groupExpressions));
                 }
-
+                else if (string.charAt(start) == '<') {
+                    int end = StringUtils.indexOfClose(string, start, '<', '>');
+                    String token = string.substring(start + 1, end - 1);
+                    
+                    BaseExpression<E> base = factory.create(token);
+                    expressions.add(base);
+                    
+                    start = end;
+                }
+                
+                // check if we have a floating OR operator
+                if (stack == '|') {
+                    stack = ' ';
+                    if (expressions.size() < 2) {
+                        throw new IllegalStateException("OR operator is applied to fewer than 2 elements.");
+                    }
+                    
+                    Expression<E> expr1 = expressions.remove(expressions.size() - 1);
+                    Expression<E> expr2 = expressions.remove(expressions.size() - 1);
+                    expressions.add(new Expression.Or<E>(expr1, expr2));
+                }
+            }
+            else if ((matcher = unaryPattern.matcher(string)).region(start, string.length()).lookingAt()) {
+                char operator = matcher.group(0).charAt(0);
+                
+                // pop the last expression
+                Expression<E> base = expressions.remove(expressions.size() - 1);
+                
+                // add the operator to it
+                Expression<E> expr;
+                if (operator == '?') {
+                    expr = new Expression.Option<E>(base);
+                } else if (operator == '*') {
+                    expr = new Expression.Star<E>(base);
+                } else if (operator == '+') {
+                    expr = new Expression.Plus<E>(base);
+                }
+                else {
+                    throw new IllegalStateException();
+                }
+                
                 expressions.add(expr);
-            } else if ((matcher = tokenPattern.matcher(string)).region(start,
-                    string.length()).lookingAt()) {
+                
                 start = matcher.end();
-            } else {
+            }
+            else if ((matcher = binaryPattern.matcher(string)).region(start, string.length()).lookingAt()) {
+                tokens.add(matcher.group(0));
+                stack = '|';
+                start = matcher.end();
+            }
+            else {
                 throw new IllegalArgumentException("No token found: "
                         + string.substring(start));
             }
+        }
+        
+        if (stack == '|') {
+            throw new IllegalStateException("OR remains on the stack.");
         }
 
         return expressions;
