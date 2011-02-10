@@ -251,7 +251,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                     return false;
                 }
 
-                match.add(new Match.Pair<E>(expr));
+                match.add(new Match.Group<E>(expr));
             }
 
             return true;
@@ -272,7 +272,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                         || expr instanceof Expression.Plus<?>) {
 
                     oldSize = match.size();
-                    match.add(new Match.Pair<E>(expr, token, index));
+                    match.add(new Match.Group<E>(expr, token, index));
                     if (tryRegexDetail(expressions,
                             tokens.subList(1, tokens.size()), index + 1, match)) {
                         return true;
@@ -283,7 +283,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
 
                 // consume one token and the expression
                 oldSize = match.size();
-                match.add(new Match.Pair<E>(expr, token, index));
+                match.add(new Match.Group<E>(expr, token, index));
                 if (tryRegexDetail(expressions.subList(1, expressions.size()),
                         tokens.subList(1, tokens.size()), index + 1, match)) {
                     return true;
@@ -297,7 +297,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                     || expr instanceof Expression.Option<?>) {
 
                 oldSize = match.size();
-                match.add(new Match.Pair<E>(expr));
+                match.add(new Match.Group<E>(expr));
                 if (tryRegexDetail(expressions.subList(1, expressions.size()),
                         tokens, index, match)) {
                     return true;
@@ -311,7 +311,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
             if (expr.apply(token)) {
                 // consume one token and one expression
                 oldSize = match.size();
-                match.add(new Match.Pair<E>(expr, token, index));
+                match.add(new Match.Group<E>(expr, token, index));
                 return tryRegexDetail(
                         expressions.subList(1, expressions.size()),
                         tokens.subList(1, tokens.size()), index + 1, match);

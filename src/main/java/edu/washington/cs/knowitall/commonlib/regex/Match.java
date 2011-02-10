@@ -11,6 +11,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 import edu.washington.cs.knowitall.commonlib.Range;
+import edu.washington.cs.knowitall.commonlib.regex.Expression.BaseExpression;
 
 /***
  * A class to represent a match. Each part of the regular expression is matched
@@ -20,7 +21,7 @@ import edu.washington.cs.knowitall.commonlib.Range;
  * 
  * @param <E>
  */
-public abstract class Match<E> extends ArrayList<Match.Pair<E>> {
+public abstract class Match<E> extends ArrayList<Match.Group<E>> {
     private static final long serialVersionUID = 1L;
     
     public abstract int startIndex();
@@ -28,7 +29,7 @@ public abstract class Match<E> extends ArrayList<Match.Pair<E>> {
         // TODO Auto-generated method stub
         return 0;
     }
-    public abstract List<Pair<E>> groups();
+    public abstract List<Group<E>> groups();
     public abstract List<E> tokens();
     
     protected static class FinalMatch<E> extends Match<E> {
@@ -36,7 +37,7 @@ public abstract class Match<E> extends ArrayList<Match.Pair<E>> {
 
         private int startIndex;
         private List<E> tokens;
-        private List<Pair<E>> groups;
+        private List<Group<E>> groups;
  
         public FinalMatch(Match<E> m) {
             super(m);
@@ -58,7 +59,7 @@ public abstract class Match<E> extends ArrayList<Match.Pair<E>> {
         }
 
         @Override
-        public List<Match.Pair<E>> groups() {
+        public List<Match.Group<E>> groups() {
             return this.groups;
         }
     }
@@ -69,15 +70,9 @@ public abstract class Match<E> extends ArrayList<Match.Pair<E>> {
         @Override
         public List<E> tokens() {
             List<E> tokens = new ArrayList<E>();
-            for (Match.Pair<E> pair : this) {
-                if (pair.expr instanceof Expression.BaseExpression<?>) {
-                    tokens.addAll(Lists.transform(pair.tokens,
-                            new Function<Match.Pair.Token<E>, E>() {
-                                @Override
-                                public E apply(Match.Pair.Token<E> token) {
-                                    return token.entity;
-                                }
-                            }));
+            for (Match.Group<E> pair : this) {
+                if (pair.expr instanceof BaseExpression<?>) {
+                    tokens.addAll(pair.tokens());
                 }
             }
     
@@ -85,9 +80,9 @@ public abstract class Match<E> extends ArrayList<Match.Pair<E>> {
         }
 
         @Override
-        public List<Pair<E>> groups() {
-            List<Pair<E>> groups = new ArrayList<Pair<E>>();
-            for (Pair<E> pair : this) {
+        public List<Group<E>> groups() {
+            List<Group<E>> groups = new ArrayList<Group<E>>();
+            for (Group<E> pair : this) {
                 if (pair.expr instanceof Expression.Group<?>) {
                     groups.add(pair);
                 }
@@ -98,7 +93,7 @@ public abstract class Match<E> extends ArrayList<Match.Pair<E>> {
 
         @Override
         public int startIndex() {
-            for (Match.Pair<E> pair : this) {
+            for (Match.Group<E> pair : this) {
                 if (pair.expr instanceof Expression.BaseExpression<?>) {
                     return pair.tokens.get(0).index;
                 }
@@ -109,7 +104,7 @@ public abstract class Match<E> extends ArrayList<Match.Pair<E>> {
         
         @Override
         public int endIndex() {
-            for (Match.Pair<E> pair : Iterables.reverse(this)) {
+            for (Match.Group<E> pair : Iterables.reverse(this)) {
                 if (pair.expr instanceof Expression.BaseExpression<?>) {
                     return pair.tokens.get(0).index;
                 }
@@ -119,8 +114,8 @@ public abstract class Match<E> extends ArrayList<Match.Pair<E>> {
         }
     }
 
-    public static class Pair<E> {
-        public static class Token<E> {
+    public static class Group<E> {
+        private static class Token<E> {
             public E entity;
             public int index;
 
@@ -135,19 +130,33 @@ public abstract class Match<E> extends ArrayList<Match.Pair<E>> {
         }
 
         public final Expression<E> expr;
-        public final List<Token<E>> tokens;
+        private final List<Token<E>> tokens;
 
-        public Pair(Expression<E> expr, E token, int pos) {
+        public Group(Expression<E> expr, E token, int pos) {
             this(expr, Collections.singletonList(new Token<E>(token, pos)));
         }
 
-        public Pair(Expression<E> expr, List<Token<E>> tokens) {
+        public Group(Expression<E> expr, List<Token<E>> tokens) {
             this.expr = expr;
             this.tokens = new ArrayList<Token<E>>(tokens);
         }
 
-        public Pair(Expression<E> expr) {
+        public Group(Expression<E> expr) {
             this(expr, new ArrayList<Token<E>>());
+        }
+        
+        public void addTokens(Group<E> group) {
+            this.tokens.addAll(group.tokens);
+        }
+        
+        public List<E> tokens() {
+            return Lists.transform(this.tokens,
+                    new Function<Match.Group.Token<E>, E>() {
+                        @Override
+                        public E apply(Match.Group.Token<E> token) {
+                            return token.entity;
+                        }
+                    });
         }
 
         public Range range() {
@@ -182,7 +191,7 @@ public abstract class Match<E> extends ArrayList<Match.Pair<E>> {
     }
 
     @Override
-    public boolean add(Pair<E> pair) {
+    public boolean add(Group<E> pair) {
         /*
          * // check if the last item is the same expression instance if
          * (this.size() > 0) { Pair<E> last = this.get(this.size() - 1); if
@@ -195,7 +204,7 @@ public abstract class Match<E> extends ArrayList<Match.Pair<E>> {
     }
 
     public boolean add(Expression<E> expr, E token, int pos) {
-        return this.add(new Pair<E>(expr, token, pos));
+        return this.add(new Group<E>(expr, token, pos));
     }
 
     public void truncate(int length) {
@@ -205,8 +214,8 @@ public abstract class Match<E> extends ArrayList<Match.Pair<E>> {
     }
 
     public Match(Match<E> match) {
-        for (Pair<E> pair : match) {
-            this.add(new Pair<E>(pair.expr, pair.tokens));
+        for (Group<E> pair : match) {
+            this.add(new Group<E>(pair.expr, pair.tokens));
         }
     }
 

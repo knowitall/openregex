@@ -70,10 +70,10 @@ public class FiniteAutomaton {
             }
             
             if (expression != null && !newMatch.isEmpty()) {
-                Match.Pair<E> pair = new Match.Pair<E>(expression);
-                for (Match.Pair<E> p : newMatch) {
+                Match.Group<E> pair = new Match.Group<E>(expression);
+                for (Match.Group<E> p : newMatch) {
                     if (p.expr instanceof Expression.BaseExpression<?>) {
-                        pair.tokens.addAll(p.tokens);
+                        pair.addTokens(p);
                     }
                 }
                 match.add(pair);
