@@ -5,10 +5,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
 
-import Mutable.MutableInteger;
 
 import com.google.common.base.Predicate;
 
+import edu.washington.cs.knowitall.commonlib.mutable.MutableInteger;
 import edu.washington.cs.knowitall.commonlib.regex.Expression.BaseExpression;
 
 public class FiniteAutomaton {
