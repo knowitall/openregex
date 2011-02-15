@@ -8,6 +8,41 @@ public class Tok {
     }
     
     public static abstract class Op<E> extends Apply<E> {
+        public boolean preceeds(Op<E> other) {
+            return this.precedence() < other.precedence();
+        }
+        
+        public abstract int precedence();
+        
+        public static abstract class Mon<E> extends Op<E> {
+            public Apply<E> sub;
+            
+            public String toString(String symbol) {
+                if (sub == null) {
+                    return symbol;
+                }
+                else {
+                    return symbol + "(" + sub.toString() + ")";
+                }
+            }
+            
+            public static class Not<E> extends Mon<E> {
+                public String toString() {
+                    return super.toString("!");
+                }
+                
+                @Override
+                public boolean apply(E entity) {
+                    return !sub.apply(entity);
+                }
+
+                @Override
+                public int precedence() {
+                    return 0;
+                }
+            }
+        }
+        
         public static abstract class Bin<E> extends Op<E> {
             public Apply<E> left;
             public Apply<E> right;
@@ -30,6 +65,11 @@ public class Tok {
                 public boolean apply(E entity) {
                     return left.apply(entity) && right.apply(entity);
                 }
+
+                @Override
+                public int precedence() {
+                    return 1;
+                }
             }
 
             public static class Or<E> extends Bin<E> {
@@ -40,6 +80,11 @@ public class Tok {
                 @Override
                 public boolean apply(E entity) {
                     return left.apply(entity) || right.apply(entity);
+                }
+
+                @Override
+                public int precedence() {
+                    return 2;
                 }
             }
         }

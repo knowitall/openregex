@@ -3,9 +3,12 @@ package edu.washington.cs.knowitall.commonlib.logic;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.Stack;
 
 import com.google.common.base.Predicate;
+
+import edu.washington.cs.knowitall.commonlib.logic.Tok.Arg;
 
 public class LogicExpression<E> implements Predicate<E> {
     public static class LogicException extends RuntimeException {
@@ -79,9 +82,18 @@ public class LogicExpression<E> implements Predicate<E> {
             if (tok instanceof Tok.Arg<?>) {
                 stack.push((Tok.Arg<E>) tok);
             } else if (tok instanceof Tok.Op) {
+                if (tok instanceof Tok.Op.Mon){
+                   Tok.Apply<E> sub = (Tok.Apply<E>) stack.pop();
+                   
+                    Tok.Op.Mon<E> mon = (Tok.Op.Mon<E>) tok;
+                    
+                    mon.sub = sub;
+                    
+                    stack.push(mon);
+                }
                 if (tok instanceof Tok.Op.Bin) {
-                    Tok.Apply<E> arg1 = (Tok.Apply<E>) stack.pop();
                     Tok.Apply<E> arg2 = (Tok.Apply<E>) stack.pop();
+                    Tok.Apply<E> arg1 = (Tok.Apply<E>) stack.pop();
                     
                     Tok.Op.Bin<E> bin = (Tok.Op.Bin<E>) tok;
                     
@@ -152,6 +164,9 @@ public class LogicExpression<E> implements Predicate<E> {
             } else if (firstChar == ')') {
                 tokens.add(new Tok.Paren.R());
                 i += 1;
+            } else if (firstChar == '!') {
+                tokens.add(new Tok.Op.Mon.Not<E>());
+                i += 1;
             } else if (firstChar == '&') {
                 tokens.add(new Tok.Op.Bin.And<E>());
                 i += 1;
@@ -202,6 +217,7 @@ public class LogicExpression<E> implements Predicate<E> {
         return tokens;
     }
 
+    @SuppressWarnings("unchecked")
     public List<Tok> rpn(List<Tok> tokens)
             throws CompileLogicException {
         Stack<Tok> stack = new Stack<Tok>();
@@ -223,8 +239,15 @@ public class LogicExpression<E> implements Predicate<E> {
                 } while (!(top instanceof Tok.Paren.L));
 
                 i += 1;
-            } else if (tok instanceof Tok.Op.Bin.And
-                    || tok instanceof Tok.Op.Bin.Or) {
+            } else if (tok instanceof Tok.Op.Mon) {
+                stack.push(tok);
+            } else if (tok instanceof Tok.Op.Bin) {
+                // higher precedence
+                while (!stack.isEmpty() && stack.peek() instanceof Tok.Op 
+                        && ((Tok.Op<Tok>)stack.peek()).preceeds((Tok.Op<Tok>)tok)) {
+                    output.offer(stack.pop());
+                }
+                
                 stack.push(tok);
             } else if (tok instanceof Tok.Arg) {
                 output.offer(tok);
@@ -242,5 +265,28 @@ public class LogicExpression<E> implements Predicate<E> {
         }
 
         return output;
+    }
+    
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(System.in);
+        
+        while (scan.hasNextLine()) {
+            String line = scan.nextLine();
+            
+            LogicExpression<String> expr = new LogicExpression<String>(line, new ArgFactory<String>() {
+                @Override
+                public Arg<String> buildArg(final String string)
+                        throws TokenizeLogicException {
+                    return new Arg.Pred<String>(string) {
+                        @Override
+                        public boolean apply(String entity) {
+                            return "true".equals(string);
+                        }
+                    };
+                }});
+            
+            System.out.println(expr.toString());
+            System.out.println(expr.apply(""));
+        }
     }
 }
