@@ -7,6 +7,7 @@ import java.util.Stack;
 
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 
 import edu.washington.cs.knowitall.commonlib.mutable.MutableInteger;
 import edu.washington.cs.knowitall.commonlib.regex.Expression.BaseExpression;
@@ -27,7 +28,7 @@ public class FiniteAutomaton {
         }
         
         public boolean apply(List<E> tokens) {
-            return this.lookingAt(tokens, this.start, null);
+            return this.evaluate(tokens) != null;
         }
         
         public Match.FinalMatch<E> lookingAt(List<E> tokens) {
@@ -36,13 +37,21 @@ public class FiniteAutomaton {
         
         public Match.FinalMatch<E> lookingAt(List<E> tokens, int startIndex) {
             List<E> sublist = tokens.subList(startIndex, tokens.size());
-            Stack<Edge<E>> edges = new Stack<Edge<E>>();
-            if (!this.lookingAt(sublist, this.start, edges)) {
+            
+            Step<E> path = this.evaluate(sublist);
+            if (path == null) {
                 return null;
             }
             
+            // build list of edges
+            List<Edge<E>> edges = new ArrayList<Edge<E>>();
+            while (path.state != this.start) {
+                edges.add(path.path);
+                path = path.prev;
+            }
+            
             Match.IntermediateMatch<E> match = new Match.IntermediateMatch<E>();
-            buildMatch(sublist.iterator(), null, new MutableInteger(startIndex), this.start, edges.iterator(), match);
+            buildMatch(sublist.iterator(), null, new MutableInteger(startIndex), this.start, Iterables.reverse(edges).iterator(), match);
             return new Match.FinalMatch<E>(match);
         }
         
@@ -83,6 +92,123 @@ public class FiniteAutomaton {
             return state;
         }
         
+        private static class Step<E> {
+            public final State<E> state;
+            public final Step<E> prev;
+            public final Edge<E> path;
+            
+            public Step(State<E> state) {
+                this(state, null, null);
+            }
+            
+            public Step(State<E> state, Step<E> prev, Edge<E> path) {
+                this.state = state;
+                this.prev = prev;
+                this.path = path;
+            }
+            
+            public String toString() {
+                return this.state.toString();
+            }
+        }
+        
+        private void expandEpsilons(List<Step<E>> steps) {
+            int size = steps.size();
+            for (int i = 0; i < size; i++) {
+                Step<E> step = steps.get(i);
+
+                expandEpsilon(step, steps);
+            }
+        }
+        
+        private void expandEpsilon(Step<E> step, List<Step<E>> steps) {
+            // loop over edges
+            for (final Edge<E> edge : step.state.edges) {
+
+                // try free edges if they do not lead to an existing
+                // step
+                if (edge.isEpsilon()
+                        && !Iterables.any(steps,
+                                new Predicate<Step<E>>() {
+                                    @Override
+                                    public boolean apply(Step<E> step) {
+                                        return step.state == edge.dest;
+                                    }
+                                })) {
+                    Step<E> newstep = new Step<E>(edge.dest, step, edge);
+                    steps.add(newstep);
+                    expandEpsilon(newstep, steps);
+                }
+            }
+        }
+        
+        private Step<E> evaluate(List<E> tokens) {
+            List<Step<E>> steps = new ArrayList<Step<E>>();
+            steps.add(new Step<E>(this.start));
+            return evaluate(tokens, steps);
+        }
+        
+        /***
+         * Use a more efficient method that keeps track of all active states.
+         * @param tokens
+         * @param steps
+         * @return
+         */
+        private Step<E> evaluate(List<E> tokens, List<Step<E>> steps) {
+            int totalTokens = tokens.size();
+            
+            int solutionTokensLeft = totalTokens;
+            Step<E> solution = null;
+            while (!steps.isEmpty()) {
+
+                // expand all epsilon edges
+                expandEpsilons(steps);
+                
+                // check if at end
+                for (Step<E> step : steps) {
+                    if (step.state == this.end) {
+                        if (tokens.size() == totalTokens) {
+                            // can't succeed if no tokens are consumed
+                        }
+                        else {
+                            // we have reached the end
+                            if (tokens.size() < solutionTokensLeft) {
+                                solution = step;
+                                solutionTokensLeft = tokens.size();
+                            }
+                        }
+                    }
+                }
+                
+                List<Step<E>> newsteps = new ArrayList<Step<E>>(
+                        steps.size() * 2);
+                    if (!tokens.isEmpty()) {
+                    for (Step<E> step : steps) {
+                        for (final Edge<E> edge : step.state.edges) {
+                            // try other edges if they match the current token
+                            if (!edge.isEpsilon() && edge.apply(tokens.get(0))) {
+                                newsteps.add(new Step<E>(edge.dest, step, edge));
+                            }
+                        }
+                    }
+                
+                    // consume a token
+                    tokens = tokens.subList(1, tokens.size());
+                }
+                
+                steps = newsteps;
+            }
+            
+            return solution;
+        }
+        
+        /***
+         * Bad recursive solution.
+         * @param tokens
+         * @param state
+         * @param edges
+         * @return
+         */
         private boolean lookingAt(List<E> tokens, State<E> state, Stack<Edge<E>> edges) {
             // check if at end
             if (state == this.end) {
