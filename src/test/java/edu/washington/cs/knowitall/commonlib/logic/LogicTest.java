@@ -8,8 +8,10 @@ import edu.washington.cs.knowitall.commonlib.logic.Tok.Arg;
 
 public class LogicTest {
     @Test
-    public void testRegex1() {
-        Assert.assertEquals("((false & false) & false)", createLogic("false & false & false").toString());
+    public void testLogic() {
+        Assert.assertEquals("(false & (false & false))", createLogic("false & false & false").toString());
+        Assert.assertEquals("((false & false) | false)", createLogic("false & false | false").toString());
+        Assert.assertEquals("(false | (false & false))", createLogic("false | false & false").toString());
         
         Assert.assertTrue(createLogic("true & true").apply("true"));
         Assert.assertFalse(createLogic("false & true").apply("true"));
@@ -57,6 +59,24 @@ public class LogicTest {
                     (a & b) | (c & d),
                     createLogic(
                             createExpression("(a & b) | (c & d)", a, b, c, d))
+                            .apply("true"));
+            
+            Assert.assertEquals(
+                    !(a | b) & (c | d),
+                    createLogic(
+                            createExpression("!(a | b) & (c | d)", a, b, c, d))
+                            .apply("true"));
+            
+            Assert.assertEquals(
+                    (a | b) & !(c | d),
+                    createLogic(
+                            createExpression("(a | b) & !(c | d)", a, b, c, d))
+                            .apply("true"));
+            
+            Assert.assertEquals(
+                    !((a | b) & !(c | d)),
+                    createLogic(
+                            createExpression("!((a | b) & !(c | d))", a, b, c, d))
                             .apply("true"));
         }
     }
