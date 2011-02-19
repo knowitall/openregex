@@ -26,14 +26,18 @@ public interface Expression<E> extends Predicate<E> {
             throw new UnsupportedOperationException();
         }
         
-        @Override
-        public String toString() {
+        public String subexpString() {
             List<String> subs = new ArrayList<String>(this.expressions.size());
             for (Expression<E> expr : this.expressions) {
                 subs.add(expr.toString());
             }
             
-            return "(" + Joiner.on(" ").join(subs) + ")";
+            return Joiner.on(" ").join(subs);
+        }
+        
+        @Override
+        public String toString() {
+            return "(" + subexpString() + ")";
         }
         
         public Automaton<E> build() {
@@ -63,6 +67,31 @@ public interface Expression<E> extends Predicate<E> {
             prev.connect(auto.end);
             
             return auto;
+        }
+    }
+    
+    public class NamedGroup<E> extends Group<E> {
+        public final String name;
+        
+        public NamedGroup(String name, List<Expression<E>> expressions) {
+            super(expressions);
+            this.name = name;
+        }
+        
+        @Override
+        public String toString() {
+            return "(<"+this.name+">:" + super.subexpString() + ")";
+        }
+    }
+    
+    public class UnnamedGroup<E> extends Group<E> {
+        public UnnamedGroup(List<Expression<E>> expressions) {
+            super(expressions);
+        }
+        
+        @Override
+        public String toString() {
+            return "(?:" + super.subexpString() + ")";
         }
     }
     

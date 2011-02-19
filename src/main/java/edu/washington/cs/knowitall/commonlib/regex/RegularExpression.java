@@ -290,9 +290,27 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                     String group = string.substring(start + 1, end - 1);
                     start = end;
                     
-                    List<Expression<E>> groupExpressions = this.tokenize(group,
-                            factory);
-                    expressions.add(new Expression.Group<E>(groupExpressions));
+                    final Pattern namedPattern = Pattern.compile("<(\\w*)>:(.*)");
+                    final Pattern unnamedPattern = Pattern.compile("\\?:(.*)");
+                    
+                    if ((matcher = namedPattern.matcher(group)).matches()) {
+                        String groupName = matcher.group(1);
+                        group = matcher.group(2);
+                        List<Expression<E>> groupExpressions = this.tokenize(group,
+                                factory);
+                        expressions.add(new Expression.NamedGroup<E>(groupName, groupExpressions));
+                    }
+                    else if ((matcher = unnamedPattern.matcher(group)).matches()) {
+                        group = matcher.group(1);
+                        List<Expression<E>> groupExpressions = this.tokenize(group,
+                                factory);
+                        expressions.add(new Expression.UnnamedGroup<E>(groupExpressions));
+                    }
+                    else {
+                        List<Expression<E>> groupExpressions = this.tokenize(group,
+                                factory);
+                        expressions.add(new Expression.Group<E>(groupExpressions));
+                    }
                 }
                 else if (string.charAt(start) == '<') {
                     int end = StringUtils.indexOfClose(string, start, '<', '>');

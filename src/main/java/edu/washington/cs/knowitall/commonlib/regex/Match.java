@@ -12,6 +12,7 @@ import com.google.common.collect.Lists;
 
 import edu.washington.cs.knowitall.commonlib.Range;
 import edu.washington.cs.knowitall.commonlib.regex.Expression.BaseExpression;
+import edu.washington.cs.knowitall.commonlib.regex.Expression.NamedGroup;
 
 /***
  * A class to represent a match. Each part of the regular expression is matched
@@ -25,12 +26,27 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
     private static final long serialVersionUID = 1L;
     
     public abstract int startIndex();
-    public int endIndex() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
+    public abstract int endIndex();
+    
     public abstract List<Group<E>> groups();
     public abstract List<E> tokens();
+    
+    public Range range() {
+        return Range.fromInterval(this.startIndex(), this.endIndex());
+    }
+    
+    public Group<E> group(String name) {
+        for (Group<E> group : this.groups()) {
+            if (group.expr instanceof Expression.NamedGroup<?>) {
+                Expression.NamedGroup<E> namedGroup = (Expression.NamedGroup<E>) group.expr;
+                if (namedGroup.name.equals(name)) {
+                    return group;
+                }
+            }
+        }
+        
+        return null;
+    }
     
     protected static class FinalMatch<E> extends Match<E> {
         private static final long serialVersionUID = 1L;
@@ -83,7 +99,8 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
         public List<Group<E>> groups() {
             List<Group<E>> groups = new ArrayList<Group<E>>();
             for (Group<E> pair : this) {
-                if (pair.expr instanceof Expression.Group<?>) {
+                if (pair.expr instanceof Expression.Group<?> 
+                && !(pair.expr instanceof Expression.UnnamedGroup<?>)) {
                     groups.add(pair);
                 }
             }
