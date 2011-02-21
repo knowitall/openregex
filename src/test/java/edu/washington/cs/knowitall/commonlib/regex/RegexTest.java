@@ -26,10 +26,6 @@ public class RegexTest {
                     }
                 });
 
-        Match<String> match;
-
-        match = regex.lookingAt(Arrays.asList(new String[] { "this", "is", "a",
-                "a", "a", "good", "test" }));
         // Assert.assertEquals(match.toString(),
         // "[{<th.*s>*:'this'}, {<is>+:'is'}, {<a>*:'a a a'}, {<good>?:'good'}, {<test>:'test'}]");
 
@@ -385,9 +381,6 @@ public class RegexTest {
                 });
 
         FiniteAutomaton.Automaton<String> auto = regex.build(regex.expressions);
-
-        Match<String> match = auto.lookingAt(Arrays.asList(new String[] {
-                "this", "good", "test" }));
 
         // different forms of "this"
         Assert.assertTrue(auto.apply(Arrays.asList(new String[] { "this",

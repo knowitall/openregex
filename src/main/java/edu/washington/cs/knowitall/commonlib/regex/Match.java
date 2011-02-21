@@ -12,7 +12,6 @@ import com.google.common.collect.Lists;
 
 import edu.washington.cs.knowitall.commonlib.Range;
 import edu.washington.cs.knowitall.commonlib.regex.Expression.BaseExpression;
-import edu.washington.cs.knowitall.commonlib.regex.Expression.NamedGroup;
 
 /***
  * A class to represent a match. Each part of the regular expression is matched
