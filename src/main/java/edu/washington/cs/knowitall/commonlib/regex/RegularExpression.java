@@ -313,25 +313,35 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                     }
                 }
                 else if (string.charAt(start) == '<') {
-                    int end = StringUtils.indexOfClose(string, start, '<', '>');
-                    String token = string.substring(start + 1, end - 1);
-                    
-                    BaseExpression<E> base = factory.create(token);
-                    expressions.add(base);
-                    
-                    start = end;
+                    try {
+                        int end = StringUtils.indexOfClose(string, start, '<', '>');
+                        String token = string.substring(start + 1, end - 1);
+                        
+                        BaseExpression<E> base = factory.create(token);
+                        expressions.add(base);
+                        
+                        start = end;
+                    }
+                    catch (Exception e) {
+                        throw new TokenizeRegexException("Error parsing group name.  Non-matching angled brackets (<>)?", e);
+                    }
                 }
                 
                 // check if we have a floating OR operator
                 if (stack == '|') {
-                    stack = ' ';
-                    if (expressions.size() < 2) {
-                        throw new IllegalStateException("OR operator is applied to fewer than 2 elements.");
+                    try {
+                        stack = ' ';
+                        if (expressions.size() < 2) {
+                            throw new IllegalStateException("OR operator is applied to fewer than 2 elements.");
+                        }
+                        
+                        Expression<E> expr1 = expressions.remove(expressions.size() - 1);
+                        Expression<E> expr2 = expressions.remove(expressions.size() - 1);
+                        expressions.add(new Expression.Or<E>(expr1, expr2));
                     }
-                    
-                    Expression<E> expr1 = expressions.remove(expressions.size() - 1);
-                    Expression<E> expr2 = expressions.remove(expressions.size() - 1);
-                    expressions.add(new Expression.Or<E>(expr1, expr2));
+                    catch (Exception e) {
+                        throw new TokenizeRegexException("Error parsing OR (|) operator.", e);
+                    }
                 }
             }
             else if ((matcher = unaryPattern.matcher(string)).region(start, string.length()).lookingAt()) {

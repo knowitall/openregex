@@ -3,8 +3,6 @@ package edu.washington.cs.knowitall.commonlib.regex;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Stack;
-
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -44,7 +42,7 @@ public class FiniteAutomaton {
             }
             
             // build list of edges
-            List<Edge<E>> edges = new ArrayList<Edge<E>>();
+            List<AbstractEdge<E>> edges = new ArrayList<AbstractEdge<E>>();
             while (path.state != this.start) {
                 edges.add(path.path);
                 path = path.prev;
@@ -55,17 +53,17 @@ public class FiniteAutomaton {
             return new Match.FinalMatch<E>(match);
         }
         
-        private State<E> buildMatch(Iterator<E> tokenIterator, Expression<E> expression, MutableInteger index, State<E> state, Iterator<Edge<E>> edgeIterator, Match.IntermediateMatch<E> match) {
+        private State<E> buildMatch(Iterator<E> tokenIterator, Expression<E> expression, MutableInteger index, State<E> state, Iterator<AbstractEdge<E>> edgeIterator, Match.IntermediateMatch<E> match) {
             Match.IntermediateMatch<E> newMatch = new Match.IntermediateMatch<E>();
             
             while (edgeIterator.hasNext() && !((state instanceof EndState<?>) && ((EndState<E>)state).expression == expression)) {
-                Edge<E> edge = edgeIterator.next();
+                AbstractEdge<E> edge = edgeIterator.next();
                 
                 // run the sub-automaton
-                if (edge.expression != null) {
+                if (edge instanceof Edge<?>) {
                     // consume a token, this is the base case
                     E token = tokenIterator.next();
-                    newMatch.add(edge.expression, token, index.value());
+                    newMatch.add(((Edge<E>)edge).expression, token, index.value());
                     index.increment();
                     
                     state = edge.dest;
@@ -95,13 +93,13 @@ public class FiniteAutomaton {
         private static class Step<E> {
             public final State<E> state;
             public final Step<E> prev;
-            public final Edge<E> path;
+            public final AbstractEdge<E> path;
             
             public Step(State<E> state) {
                 this(state, null, null);
             }
             
-            public Step(State<E> state, Step<E> prev, Edge<E> path) {
+            public Step(State<E> state, Step<E> prev, AbstractEdge<E> path) {
                 this.state = state;
                 this.prev = prev;
                 this.path = path;
@@ -123,12 +121,11 @@ public class FiniteAutomaton {
         
         private void expandEpsilon(Step<E> step, List<Step<E>> steps) {
             // loop over edges
-            for (final Edge<E> edge : step.state.edges) {
+            for (final Epsilon<E> edge : step.state.epsilons) {
 
                 // try free edges if they do not lead to an existing
                 // step
-                if (edge.isEpsilon()
-                        && !Iterables.any(steps,
+                if (!Iterables.any(steps,
                                 new Predicate<Step<E>>() {
                                     @Override
                                     public boolean apply(Step<E> step) {
@@ -186,7 +183,7 @@ public class FiniteAutomaton {
                     for (Step<E> step : steps) {
                         for (final Edge<E> edge : step.state.edges) {
                             // try other edges if they match the current token
-                            if (!edge.isEpsilon() && edge.apply(tokens.get(0))) {
+                            if (edge.apply(tokens.get(0))) {
                                 newsteps.add(new Step<E>(edge.dest, step, edge));
                             }
                         }
@@ -209,6 +206,7 @@ public class FiniteAutomaton {
          * @param edges
          * @return
          */
+        /*
         private boolean lookingAt(List<E> tokens, State<E> state, Stack<Edge<E>> edges) {
             // check if at end
             if (state == this.end) {
@@ -237,13 +235,15 @@ public class FiniteAutomaton {
             
             return false;
         }
+        */
     }
     
     public static class State<E> {
         public final List<Edge<E>> edges = new ArrayList<Edge<E>>();
+        public final List<Epsilon<E>> epsilons = new ArrayList<Epsilon<E>>();
         
         public void connect(State<E> dest) {
-            this.edges.add(new Edge<E>(dest));
+            this.epsilons.add(new Epsilon<E>(dest));
         }
         
         public void connect(State<E> dest, BaseExpression<E> cost) {
@@ -279,17 +279,20 @@ public class FiniteAutomaton {
         }
     }
     
-    public static class Edge<E> implements Predicate<E> {
-        public final BaseExpression<E> expression;
+    public static abstract class AbstractEdge<E> implements Predicate<E> {
         public final State<E> dest;
         
-        public Edge(State<E> dest, BaseExpression<E> base) {
+        public AbstractEdge(State<E> dest) {
             this.dest = dest;
-            this.expression = base;
         }
+    }
+    
+    public static class Edge<E> extends AbstractEdge<E> {
+        public final BaseExpression<E> expression;
         
-        public Edge(State<E> dest) {
-            this(dest, null);
+        public Edge(State<E> dest, BaseExpression<E> base) {
+            super(dest);
+            this.expression = base;
         }
 
         @Override
@@ -301,9 +304,16 @@ public class FiniteAutomaton {
                 return expression.apply(entity);
             }
         }
-        
-        public boolean isEpsilon() {
-            return this.expression == null;
+    }
+    
+    public static class Epsilon<E> extends AbstractEdge<E> {
+        public Epsilon(State<E> dest) {
+            super(dest);
+        }
+
+        @Override
+        public boolean apply(E entity) {
+            return true;
         }
     }
 }
