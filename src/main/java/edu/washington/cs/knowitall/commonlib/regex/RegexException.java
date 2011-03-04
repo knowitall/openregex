@@ -6,4 +6,8 @@ public class RegexException extends RuntimeException {
     public RegexException(String message, Exception e) {
         super(message, e);
     }
+    
+    public RegexException(String message) {
+        super(message);
+    }
 }

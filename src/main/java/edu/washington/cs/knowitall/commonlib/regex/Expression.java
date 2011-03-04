@@ -258,4 +258,41 @@ public interface Expression<E> extends Predicate<E> {
             return auto;
         }
     }
+    
+    static abstract class AssertionExpression<E> implements Expression<E> {
+        public boolean apply(E entity) {
+            return false;
+        }
+        
+        public abstract boolean apply(boolean hasStart, List<E> tokens, int count);
+
+        @Override
+        public Automaton<E> build() {
+            Automaton<E> auto = new Automaton<E>(this);
+            
+            auto.start.connect(auto.end, this);
+            
+            return auto;
+        }
+    }
+    
+    static class StartAssertion<E> extends AssertionExpression<E> {
+        public boolean apply(boolean hasStart, List<E> tokens, int count) {
+            return hasStart && tokens.size() == count;
+        }
+        
+        public String toString() {
+            return "^";
+        }
+    }
+    
+    static class EndAssertion<E> extends AssertionExpression<E> {
+        public boolean apply(boolean hasStart, List<E> tokens, int count) {
+            return tokens.isEmpty();
+        }
+        
+        public String toString() {
+            return "$";
+        }
+    }
 }

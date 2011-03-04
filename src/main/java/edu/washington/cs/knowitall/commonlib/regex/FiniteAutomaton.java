@@ -8,7 +8,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 
 import edu.washington.cs.knowitall.commonlib.mutable.MutableInteger;
-import edu.washington.cs.knowitall.commonlib.regex.Expression.BaseExpression;
+import edu.washington.cs.knowitall.commonlib.regex.Expression.AssertionExpression;
 
 public class FiniteAutomaton {
     public static class Automaton<E> {
@@ -26,7 +26,7 @@ public class FiniteAutomaton {
         }
         
         public boolean apply(List<E> tokens) {
-            return this.evaluate(tokens) != null;
+            return this.evaluate(tokens, true) != null;
         }
         
         public Match.FinalMatch<E> lookingAt(List<E> tokens) {
@@ -36,7 +36,7 @@ public class FiniteAutomaton {
         public Match.FinalMatch<E> lookingAt(List<E> tokens, int startIndex) {
             List<E> sublist = tokens.subList(startIndex, tokens.size());
             
-            Step<E> path = this.evaluate(sublist);
+            Step<E> path = this.evaluate(sublist, startIndex == 0);
             if (path == null) {
                 return null;
             }
@@ -60,7 +60,7 @@ public class FiniteAutomaton {
                 AbstractEdge<E> edge = edgeIterator.next();
                 
                 // run the sub-automaton
-                if (edge instanceof Edge<?>) {
+                if (edge instanceof Edge<?> && !(((Edge<?>) edge).expression instanceof AssertionExpression<?>)) {
                     // consume a token, this is the base case
                     E token = tokenIterator.next();
                     newMatch.add(((Edge<E>)edge).expression, token, index.value());
@@ -139,10 +139,24 @@ public class FiniteAutomaton {
             }
         }
         
-        private Step<E> evaluate(List<E> tokens) {
+        private void expandAssertions(List<Step<E>> steps, List<Step<E>> newsteps, boolean hasStart, List<E> tokens, int totalTokens) {
+            for (Step<E> step : steps) {
+                for (final Edge<E> edge : step.state.edges) {
+                    if (edge.expression instanceof AssertionExpression) {
+                        AssertionExpression<E> assertion = (AssertionExpression<E>)edge.expression;
+                        
+                        if (assertion.apply(hasStart, tokens, totalTokens)) {
+                            newsteps.add(new Step<E>(edge.dest, step, edge));
+                        }
+                    }
+                }
+            }
+        }
+        
+        private Step<E> evaluate(List<E> tokens, boolean hasStart) {
             List<Step<E>> steps = new ArrayList<Step<E>>();
             steps.add(new Step<E>(this.start));
-            return evaluate(tokens, steps);
+            return evaluate(tokens, steps, hasStart);
         }
         
         /***
@@ -151,35 +165,48 @@ public class FiniteAutomaton {
          * @param steps
          * @return
          */
-        private Step<E> evaluate(List<E> tokens, List<Step<E>> steps) {
+        private Step<E> evaluate(List<E> tokens, List<Step<E>> steps, boolean hasStart) {
             int totalTokens = tokens.size();
             
             int solutionTokensLeft = totalTokens;
             Step<E> solution = null;
             while (!steps.isEmpty()) {
 
-                // expand all epsilon edges
                 expandEpsilons(steps);
                 
-                // check if at end
-                for (Step<E> step : steps) {
-                    if (step.state == this.end) {
-                        if (tokens.size() == totalTokens) {
-                            // can't succeed if no tokens are consumed
-                        }
-                        else {
-                            // we have reached the end
-                            if (tokens.size() < solutionTokensLeft) {
-                                solution = step;
-                                solutionTokensLeft = tokens.size();
+                List<Step<E>> intermediate = new ArrayList<Step<E>>(steps);
+                List<Step<E>> newsteps = new ArrayList<Step<E>>(steps.size() * 2);
+                do {
+                    
+                    // check if at end
+                    for (Step<E> step : intermediate) {
+                        if (step.state == this.end) {
+                            if (tokens.size() == totalTokens) {
+                                // can't succeed if no tokens are consumed
+                            }
+                            else {
+                                // we have reached the end
+                                if (tokens.size() < solutionTokensLeft) {
+                                    solution = step;
+                                    solutionTokensLeft = tokens.size();
+                                }
                             }
                         }
                     }
-                }
-                
-                List<Step<E>> newsteps = new ArrayList<Step<E>>(
-                        steps.size() * 2);
-                    if (!tokens.isEmpty()) {
+                    
+                    // handle assertions
+                    newsteps.clear();
+                    expandAssertions(intermediate, newsteps, hasStart, tokens, totalTokens);
+                    expandEpsilons(newsteps);
+                    
+                    intermediate.clear();
+                    intermediate.addAll(newsteps);
+                    
+                    steps.addAll(newsteps);
+                } while (newsteps.size() > 0);
+
+                newsteps.clear();
+                if (!tokens.isEmpty()) {
                     for (Step<E> step : steps) {
                         for (final Edge<E> edge : step.state.edges) {
                             // try other edges if they match the current token
@@ -246,7 +273,7 @@ public class FiniteAutomaton {
             this.epsilons.add(new Epsilon<E>(dest));
         }
         
-        public void connect(State<E> dest, BaseExpression<E> cost) {
+        public void connect(State<E> dest, Expression<E> cost) {
             this.edges.add(new Edge<E>(dest, cost));
         }
         
@@ -288,9 +315,9 @@ public class FiniteAutomaton {
     }
     
     public static class Edge<E> extends AbstractEdge<E> {
-        public final BaseExpression<E> expression;
+        public final Expression<E> expression;
         
-        public Edge(State<E> dest, BaseExpression<E> base) {
+        public Edge(State<E> dest, Expression<E> base) {
             super(dest);
             this.expression = base;
         }

@@ -1,7 +1,9 @@
 package edu.washington.cs.knowitall.commonlib.regex;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -10,6 +12,8 @@ import com.google.common.base.Predicate;
 
 import edu.washington.cs.knowitall.commonlib.StringUtils;
 import edu.washington.cs.knowitall.commonlib.regex.Expression.BaseExpression;
+import edu.washington.cs.knowitall.commonlib.regex.Expression.EndAssertion;
+import edu.washington.cs.knowitall.commonlib.regex.Expression.StartAssertion;
 import edu.washington.cs.knowitall.commonlib.regex.FiniteAutomaton.Automaton;
 
 public class RegularExpression<E> implements Predicate<List<E>> {
@@ -284,11 +288,16 @@ public class RegularExpression<E> implements Predicate<List<E>> {
             }
             
             // tokenize group
-            if (string.charAt(start) == '(' || string.charAt(start) == '<') {
+            char c = string.charAt(start);
+            if (c == '(' || c == '<' || c == '[') {
                 if (string.charAt(start) == '(') {
                     int end = StringUtils.indexOfClose(string, start, '(', ')');
-                    String group = string.substring(start + 1, end - 1);
-                    start = end;
+                    if (end == -1) {
+                        throw new TokenizeRegexException("Unclosed parenthesis at: " + start);
+                    }
+                    
+                    String group = string.substring(start + 1, end);
+                    start = end + 1;
                     
                     final Pattern namedPattern = Pattern.compile("<(\\w*)>:(.*)");
                     final Pattern unnamedPattern = Pattern.compile("\\?:(.*)");
@@ -312,18 +321,32 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                         expressions.add(new Expression.Group<E>(groupExpressions));
                     }
                 }
-                else if (string.charAt(start) == '<') {
-                    try {
-                        int end = StringUtils.indexOfClose(string, start, '<', '>');
-                        String token = string.substring(start + 1, end - 1);
+                else if (c == '<' || c == '[') {
+                    int end;
+                    if (c == '<') {
+                        end = StringUtils.indexOfClose(string, start, '<', '>');
+                    }
+                    else if (c == '[' ){
+                        end = StringUtils.indexOfClose(string, start, '[', ']');
+                    }
+                    else {
+                        throw new IllegalStateException();
+                    }
+                    
+                    // make sure we found the end
+                    if (end == -1) {
+                        throw new TokenizeRegexException("Error parsing group name.  Non-matching brackets (<>) or ([]).");
+                    }
                         
+                    String token = string.substring(start + 1, end);
+                    try {
                         BaseExpression<E> base = factory.create(token);
                         expressions.add(base);
                         
-                        start = end;
+                        start = end + 1;
                     }
                     catch (Exception e) {
-                        throw new TokenizeRegexException("Error parsing group name.  Non-matching angled brackets (<>)?", e);
+                        throw new TokenizeRegexException("Error parsing token: " + token, e);
                     }
                 }
                 
@@ -343,6 +366,14 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                         throw new TokenizeRegexException("Error parsing OR (|) operator.", e);
                     }
                 }
+            }
+            else if (c == '^') {
+                expressions.add(new StartAssertion<E>());
+                start += 1;
+            }
+            else if (c == '$') {
+                expressions.add(new EndAssertion<E>());
+                start += 1;
             }
             else if ((matcher = unaryPattern.matcher(string)).region(start, string.length()).lookingAt()) {
                 char operator = matcher.group(0).charAt(0);
@@ -404,5 +435,33 @@ public class RegularExpression<E> implements Predicate<List<E>> {
         }
 
         return Joiner.on(" ").join(expressions);
+    }
+    
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(System.in);
+                
+        RegularExpression<String> regex = new RegularExpression<String>(args[0], new ExpressionFactory<String>() {
+            @Override
+            public BaseExpression<String> create(final String token) {
+                return new BaseExpression<String>(token) {
+                    private final Pattern pattern;
+                    
+                    {
+                        pattern = Pattern.compile(token);
+                    }
+                        
+                    @Override
+                    public boolean apply(String entity) {
+                        return pattern.matcher(entity).matches();
+                    }};
+            }});
+        
+        System.out.println(regex);
+        
+        while (scan.hasNextLine()) {
+            String line = scan.nextLine();
+            
+            System.out.println(regex.apply(Arrays.asList(line.split("\\s+"))));
+        }
     }
 }

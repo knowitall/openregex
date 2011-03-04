@@ -6,4 +6,8 @@ public class TokenizeRegexException extends RegexException {
     public TokenizeRegexException(String message, Exception e) {
         super(message, e);
     }
+    
+    public TokenizeRegexException(String message) {
+        super(message);
+    }
 }

@@ -1,6 +1,7 @@
 package edu.washington.cs.knowitall.commonlib.logic;
 
 import java.util.ArrayList;
+import java.util.EmptyStackException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
@@ -82,32 +83,37 @@ public class LogicExpression<E> implements Predicate<E> {
             if (tok instanceof Tok.Arg<?>) {
                 stack.push((Tok.Arg<E>) tok);
             } else if (tok instanceof Tok.Op) {
-                if (tok instanceof Tok.Op.Mon){
-                   Tok.Apply<E> sub = (Tok.Apply<E>) stack.pop();
-                   
-                    Tok.Op.Mon<E> mon = (Tok.Op.Mon<E>) tok;
-                    
-                    mon.sub = sub;
-                    
-                    stack.push(mon);
+                try {
+                    if (tok instanceof Tok.Op.Mon){
+                       Tok.Apply<E> sub = (Tok.Apply<E>) stack.pop();
+                       
+                        Tok.Op.Mon<E> mon = (Tok.Op.Mon<E>) tok;
+                        
+                        mon.sub = sub;
+                        
+                        stack.push(mon);
+                    }
+                    if (tok instanceof Tok.Op.Bin) {
+                        Tok.Apply<E> arg2 = (Tok.Apply<E>) stack.pop();
+                        Tok.Apply<E> arg1 = (Tok.Apply<E>) stack.pop();
+                        
+                        Tok.Op.Bin<E> bin = (Tok.Op.Bin<E>) tok;
+                        
+                        bin.left = arg1;
+                        bin.right = arg2;
+                        
+                        stack.push(bin);
+                    }
                 }
-                if (tok instanceof Tok.Op.Bin) {
-                    Tok.Apply<E> arg2 = (Tok.Apply<E>) stack.pop();
-                    Tok.Apply<E> arg1 = (Tok.Apply<E>) stack.pop();
-                    
-                    Tok.Op.Bin<E> bin = (Tok.Op.Bin<E>) tok;
-                    
-                    bin.left = arg1;
-                    bin.right = arg2;
-                    
-                    stack.push(bin);
+                catch (EmptyStackException e) {
+                    throw new CompileLogicException("No argument for operator (stack empty): " + tok.toString());
                 }
             }
         }
 
         if (stack.size() > 1) {
             throw new ApplyLogicException(
-                    "Stack has multiple elements after apply.");
+                    "Stack has multiple elements after apply: " + stack.toString());
         }
 
         if (stack.size() == 0) {
@@ -117,7 +123,7 @@ public class LogicExpression<E> implements Predicate<E> {
 
         if (!(stack.peek() instanceof Tok.Apply<?>)) {
             throw new ApplyLogicException(
-                    "Stack contains non-applies after apply.");
+                    "Stack contains non-appliable tokens after apply: " + stack.toString());
         }
 
         return ((Tok.Apply<E>) stack.pop());
@@ -177,12 +183,18 @@ public class LogicExpression<E> implements Predicate<E> {
                 Stack<Character> parens = new Stack<Character>();
                 
                 boolean quoted = false;
+                char quote = ' ';
                 int nextToken;
                 for (nextToken = 1; nextToken < substring.length(); nextToken++) {
                     char c = substring.charAt(nextToken);
                     
-                    if (c == '"') {
+                    if (c == '"' && (!quoted || quote == '"')) {
                         quoted = !quoted;
+                        quote = '"';
+                    }
+                    if (c == '\'' & (!quoted || quote == '\'')) {
+                        quoted = !quoted;
+                        quote = '\'';
                     }
                     else if (quoted) {
                         continue;
