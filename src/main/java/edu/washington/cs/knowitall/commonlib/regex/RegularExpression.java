@@ -426,7 +426,23 @@ public class RegularExpression<E> implements Predicate<List<E>> {
         final Pattern tokenPattern = Pattern.compile("\\(?<.*?>\\)?[*?+]?");
         return StringUtils.splitInto(expression, tokenPattern);
     }
+    
+    @Override
+    public boolean equals(Object other) {
+        if (! (other instanceof RegularExpression)) {
+            return false;
+        }
+        
+        RegularExpression<?> expression = (RegularExpression<?>) other;
+        return this.toString().equals(expression.toString());
+    }
+    
+    @Override
+    public int hashCode() {
+        return this.toString().hashCode();
+    }
 
+    @Override
     public String toString() {
         List<String> expressions = new ArrayList<String>(
                 this.expressions.size());
