@@ -10,7 +10,21 @@ import com.google.common.collect.Iterables;
 import edu.washington.cs.knowitall.commonlib.mutable.MutableInteger;
 import edu.washington.cs.knowitall.commonlib.regex.Expression.AssertionExpression;
 
+/***
+ * A finite automaton implementation.  There is support for epsilon
+ * transitions (NFA) but if those are omitted then this works as an
+ * implementation of a DFA.
+ * @author schmmd
+ *
+ */
 public class FiniteAutomaton {
+    /***
+     * A component automaton with a single start state and a single end
+     * state.
+     * @author schmmd
+     *
+     * @param <E>
+     */
     public static class Automaton<E> {
         public final StartState<E> start;
         public final EndState<E> end;
@@ -53,6 +67,17 @@ public class FiniteAutomaton {
             return new Match.FinalMatch<E>(match);
         }
         
+        /***
+         * Retrace the path through the NFA and produce an object that
+         * represents the match.
+         * @param tokenIterator an iterator over the tokens.
+         * @param expression the expression to match.
+         * @param index the present index.
+         * @param state the present state.
+         * @param edgeIterator an iterator over the edges in the solution.
+         * @param match the solution.
+         * @return
+         */
         private State<E> buildMatch(Iterator<E> tokenIterator, Expression<E> expression, MutableInteger index, State<E> state, Iterator<AbstractEdge<E>> edgeIterator, Match.IntermediateMatch<E> match) {
             Match.IntermediateMatch<E> newMatch = new Match.IntermediateMatch<E>();
             
@@ -90,6 +115,14 @@ public class FiniteAutomaton {
             return state;
         }
         
+        /***
+         * A representation of a movement from a state to another, with a 
+         * backreference to the previous state.  This is used in building
+         * a match object once a solution has been found.
+         * @author schmmd
+         *
+         * @param <E>
+         */
         private static class Step<E> {
             public final State<E> state;
             public final Step<E> prev;
@@ -110,6 +143,12 @@ public class FiniteAutomaton {
             }
         }
         
+        /***
+         * Expand all epsilon transitions for the supplied steps.  That is,
+         * add all states available via an epsilon transition from a supplied
+         * state to the list.
+         * @param steps
+         */
         private void expandEpsilons(List<Step<E>> steps) {
             int size = steps.size();
             for (int i = 0; i < size; i++) {
@@ -119,6 +158,12 @@ public class FiniteAutomaton {
             }
         }
         
+        /***
+         * Expand all epsilon transitions for the specified step.  That is,
+         * add all states avaiable via an epsilon transition from step.state.
+         * @param step
+         * @param steps
+         */
         private void expandEpsilon(Step<E> step, List<Step<E>> steps) {
             // loop over edges
             for (final Epsilon<E> edge : step.state.epsilons) {
@@ -139,6 +184,15 @@ public class FiniteAutomaton {
             }
         }
         
+        /***
+         * Expand any state that has an assertion edge if the assertion passes
+         * given the present state.
+         * @param steps
+         * @param newsteps
+         * @param hasStart true iff the tokens contains the start token.
+         * @param tokens
+         * @param totalTokens
+         */
         private void expandAssertions(List<Step<E>> steps, List<Step<E>> newsteps, boolean hasStart, List<E> tokens, int totalTokens) {
             for (Step<E> step : steps) {
                 for (final Edge<E> edge : step.state.edges) {
@@ -160,10 +214,12 @@ public class FiniteAutomaton {
         }
         
         /***
-         * Use a more efficient method that keeps track of all active states.
-         * @param tokens
-         * @param steps
-         * @return
+         * Evaluate the NFA against the list of tokens using the Thompson NFA
+         * algorithm.
+         * @param tokens the tokens to evaluate against
+         * @param steps present list of accessible states.
+         * @param hasStart true iff tokens contains the start token.
+         * @return a Step object representing the last transition or null.
          */
         private Step<E> evaluate(List<E> tokens, List<Step<E>> steps, boolean hasStart) {
             int totalTokens = tokens.size();
@@ -265,14 +321,29 @@ public class FiniteAutomaton {
         */
     }
     
+    /***
+     * Representation of a state in the automaton.
+     * @author schmmd
+     *
+     * @param <E>
+     */
     public static class State<E> {
         public final List<Edge<E>> edges = new ArrayList<Edge<E>>();
         public final List<Epsilon<E>> epsilons = new ArrayList<Epsilon<E>>();
         
+        /***
+         * Add an epsilon transition between this state and dest.
+         * @param dest the state to connect
+         */
         public void connect(State<E> dest) {
             this.epsilons.add(new Epsilon<E>(dest));
         }
         
+        /***
+         * Add an edge between this state and dest.
+         * @param dest the state to connect
+         * @param cost the expression of the edge
+         */
         public void connect(State<E> dest, Expression<E> cost) {
             this.edges.add(new Edge<E>(dest, cost));
         }
@@ -282,6 +353,12 @@ public class FiniteAutomaton {
         }
     }
     
+    /***
+     * A start or end state.
+     * @author schmmd
+     *
+     * @param <E>
+     */
     public static class TerminusState<E> extends State<E> {
         public final Expression<E> expression;
         public TerminusState(Expression<E> expression) {
@@ -294,18 +371,36 @@ public class FiniteAutomaton {
         }
     }
     
+    /***
+     * A start state.
+     * @author schmmd
+     *
+     * @param <E>
+     */
     public static class StartState<E> extends TerminusState<E> {
         public StartState(Expression<E> expression) {
             super(expression);
         }
     }
     
+    /***
+     * An end state.
+     * @author schmmd
+     *
+     * @param <E>
+     */
     public static class EndState<E> extends TerminusState<E> {
         public EndState(Expression<E> expression) {
             super(expression);
         }
     }
     
+    /***
+     * An abstract representation of an edge.
+     * @author schmmd
+     *
+     * @param <E>
+     */
     public static abstract class AbstractEdge<E> implements Predicate<E> {
         public final State<E> dest;
         
@@ -314,6 +409,12 @@ public class FiniteAutomaton {
         }
     }
     
+    /***
+     * An edge with cost {@code expression}.
+     * @author schmmd
+     *
+     * @param <E>
+     */
     public static class Edge<E> extends AbstractEdge<E> {
         public final Expression<E> expression;
         
@@ -333,6 +434,12 @@ public class FiniteAutomaton {
         }
     }
     
+    /***
+     * An edge without cost, an epsilon transition.
+     * @author schmmd
+     *
+     * @param <E>
+     */
     public static class Epsilon<E> extends AbstractEdge<E> {
         public Epsilon(State<E> dest) {
             super(dest);

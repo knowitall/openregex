@@ -24,16 +24,82 @@ import edu.washington.cs.knowitall.commonlib.regex.Expression.BaseExpression;
 public abstract class Match<E> extends ArrayList<Match.Group<E>> {
     private static final long serialVersionUID = 1L;
     
+    public Match() {
+        super();
+    }
+
+    public Match(int size) {
+        super(size);
+    }
+
+    public Match(Match<E> match) {
+        for (Group<E> pair : match) {
+            this.add(new Group<E>(pair.expr, pair.tokens));
+        }
+    }
+
+    @Override
+    public boolean add(Group<E> pair) {
+        return super.add(pair);
+    }
+
+    /***
+     * Convenience method for add(new Group<E>(expr, token, pos)).
+     * @param expr
+     * @param token
+     * @param pos
+     * @return
+     */
+    public boolean add(Expression<E> expr, E token, int pos) {
+        return this.add(new Group<E>(expr, token, pos));
+    }
+
+    @Override
+    public String toString() {
+        return "["
+                + Joiner.on(", ").join(
+                        Lists.transform(this, Functions.toStringFunction()))
+                + "]";
+    }
+
+    public String toPrettyString() {
+        return Joiner.on("\n").join(
+                Lists.transform(this, Functions.toStringFunction()));
+    }
+    
+    /***
+     * @return the index of the first token matched.
+     */
     public abstract int startIndex();
+    
+    /***
+     * @return the index of the last token matched.
+     */
     public abstract int endIndex();
     
+    /***
+     * @return all matching groups (named and unnamed).
+     */
     public abstract List<Group<E>> groups();
+    
+    /***
+     * @return all matched tokens.
+     */
     public abstract List<E> tokens();
     
+    /***
+     * The range the match spans.
+     * @return
+     */
     public Range range() {
         return Range.fromInterval(this.startIndex(), this.endIndex());
     }
     
+    /***
+     * Retrieve a group by name.
+     * @param name the name of the group to retrieve.
+     * @return the associated group.
+     */
     public Group<E> group(String name) {
         for (Group<E> group : this.groups()) {
             if (group.expr instanceof Expression.NamedGroup<?>) {
@@ -47,18 +113,24 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
         return null;
     }
     
+    /***
+     * A match representation that has efficient method calls but is immutable.
+     * @author schmmd
+     *
+     * @param <E>
+     */
     protected static class FinalMatch<E> extends Match<E> {
         private static final long serialVersionUID = 1L;
 
-        private int startIndex;
-        private List<E> tokens;
-        private List<Group<E>> groups;
+        private final int startIndex;
+        private final List<E> tokens;
+        private final List<Group<E>> groups;
  
         public FinalMatch(Match<E> m) {
             super(m);
             this.startIndex = m.startIndex();
-            this.tokens = m.tokens();
-            this.groups = m.groups();
+            this.tokens = Collections.unmodifiableList(m.tokens());
+            this.groups = Collections.unmodifiableList(m.groups());
         }
 
         public int startIndex() {
@@ -79,6 +151,14 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
         }
     }
 
+    /***
+     * A match representation that is mutable but many method calls compute
+     * values instead of returning stored values.  This is a good in-between
+     * while building a match object.
+     * @author schmmd
+     *
+     * @param <E>
+     */
     protected static class IntermediateMatch<E> extends Match<E> {
         private static final long serialVersionUID = 1L;
 
@@ -130,6 +210,12 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
         }
     }
 
+    /***
+     * A captured group in a matched expression.
+     * @author schmmd
+     *
+     * @param <E>
+     */
     public static class Group<E> {
         private static class Token<E> {
             public E entity;
@@ -161,10 +247,17 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
             this(expr, new ArrayList<Token<E>>());
         }
         
+        /***
+         * Add tokens to the group.
+         * @param group
+         */
         public void addTokens(Group<E> group) {
             this.tokens.addAll(group.tokens);
         }
         
+        /***
+         * @return the tokens matched.
+         */
         public List<E> tokens() {
             return Lists.transform(this.tokens,
                     new Function<Match.Group.Token<E>, E>() {
@@ -175,6 +268,9 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
                     });
         }
 
+        /***
+         * @return the range of the tokens matched.
+         */
         public Range range() {
             Range range = Range.EMPTY;
             for (Token<E> token : this.tokens) {
@@ -184,6 +280,9 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
             return range;
         }
 
+        /***
+         * @return the number of tokens matched.
+         */
         public int tokenCount() {
             return this.tokens.size();
         }
@@ -196,55 +295,5 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
                             Lists.transform(this.tokens,
                                     Functions.toStringFunction())) + "'";
         }
-    }
-
-    public Match() {
-        super();
-    }
-
-    public Match(int size) {
-        super(size);
-    }
-
-    @Override
-    public boolean add(Group<E> pair) {
-        /*
-         * // check if the last item is the same expression instance if
-         * (this.size() > 0) { Pair<E> last = this.get(this.size() - 1); if
-         * (last.expr == pair.expr) { last.parts.addAll(pair.parts); return
-         * true; } }
-         * 
-         * this.tokenCount += pair.tokenCount;
-         */
-        return super.add(pair);
-    }
-
-    public boolean add(Expression<E> expr, E token, int pos) {
-        return this.add(new Group<E>(expr, token, pos));
-    }
-
-    public void truncate(int length) {
-        while (this.size() > length) {
-            this.remove(this.size() - 1);
-        }
-    }
-
-    public Match(Match<E> match) {
-        for (Group<E> pair : match) {
-            this.add(new Group<E>(pair.expr, pair.tokens));
-        }
-    }
-
-    @Override
-    public String toString() {
-        return "["
-                + Joiner.on(", ").join(
-                        Lists.transform(this, Functions.toStringFunction()))
-                + "]";
-    }
-
-    public String toPrettyString() {
-        return Joiner.on("\n").join(
-                Lists.transform(this, Functions.toStringFunction()));
     }
 }

@@ -3,7 +3,6 @@ package edu.washington.cs.knowitall.commonlib.logic;
 import org.junit.Assert;
 import org.junit.Test;
 
-import edu.washington.cs.knowitall.commonlib.logic.LogicExpression.TokenizeLogicException;
 import edu.washington.cs.knowitall.commonlib.logic.Tok.Arg;
 
 public class LogicTest {
@@ -92,8 +91,7 @@ public class LogicTest {
     public LogicExpression<String> createLogic(String logic) {
         LogicExpression<String> expr = new LogicExpression<String>(logic, new ArgFactory<String>() {
             @Override
-            public Arg<String> buildArg(final String string)
-                    throws TokenizeLogicException {
+            public Arg<String> create(final String string) {
                 return new Arg.Pred<String>(string) {
                     @Override
                     public boolean apply(String entity) {

@@ -15,6 +15,7 @@ import edu.washington.cs.knowitall.commonlib.regex.Expression.BaseExpression;
 import edu.washington.cs.knowitall.commonlib.regex.Expression.EndAssertion;
 import edu.washington.cs.knowitall.commonlib.regex.Expression.StartAssertion;
 import edu.washington.cs.knowitall.commonlib.regex.FiniteAutomaton.Automaton;
+import edu.washington.cs.knowitall.commonlib.regex.RegexException.TokenizeRegexException;
 
 public class RegularExpression<E> implements Predicate<List<E>> {
     public final List<Expression<E>> expressions;
@@ -25,11 +26,47 @@ public class RegularExpression<E> implements Predicate<List<E>> {
         this.auto = this.build(this.expressions);
     }
     
-    public Automaton<E> build(List<Expression<E>> exprs) {
+    @Override
+    public boolean equals(Object other) {
+        if (! (other instanceof RegularExpression)) {
+            return false;
+        }
+        
+        RegularExpression<?> expression = (RegularExpression<?>) other;
+        return this.toString().equals(expression.toString());
+    }
+    
+    @Override
+    public int hashCode() {
+        return this.toString().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        List<String> expressions = new ArrayList<String>(
+                this.expressions.size());
+        for (Expression<E> expr : this.expressions) {
+            expressions.add(expr.toString());
+        }
+
+        return Joiner.on(" ").join(expressions);
+    }
+    
+    /***
+     * Build an NFA from the list of expressions.
+     * @param exprs
+     * @return
+     */
+    protected Automaton<E> build(List<Expression<E>> exprs) {
         Expression.Group<E> group = new Expression.Group<E>(exprs);
         return group.build();
     }
 
+    /***
+     * Apply the expression against a list of tokens.
+     * 
+     * @return true iff the expression if found within the tokens.
+     */
     @Override
     public boolean apply(List<E> tokens) {
         if (this.find(tokens) != null) {
@@ -46,12 +83,20 @@ public class RegularExpression<E> implements Predicate<List<E>> {
      * writing/debugging regular expressions.
      * 
      * @param tokens
-     * @return
+     * @return an object representing the match, or null if no match is found.
      */
     public Match<E> find(List<E> tokens) {
         return this.find(tokens, 0);
     }
     
+    /***
+     * Find the first match of the regular expression against tokens, starting 
+     * at the specified index.
+     * 
+     * @param tokens tokens to match against.
+     * @param start index to start looking for a match.
+     * @return an object representing the match, or null if no match is found.
+     */
     public Match<E> find(List<E> tokens, int start) {
         Match<E> match;
         for (int i = start; i < tokens.size(); i++) {
@@ -64,20 +109,34 @@ public class RegularExpression<E> implements Predicate<List<E>> {
         return null;
     }
     
+    /***
+     * Determine if the regular expression matches the beginning of the
+     * supplied tokens.
+     * 
+     * @param tokens the list of tokens to match.
+     * @return an object representing the match, or null if no match is found.
+     */
     public Match<E> lookingAt(List<E> tokens) {
         return this.lookingAt(tokens, 0);
     }
 
+    /***
+     * Determine if the regular expression matches the supplied tokens,
+     * starting at the specified index.
+     * 
+     * @param tokens the list of tokens to match.
+     * @param start the index where the match should begin.
+     * @return an object representing the match, or null if no match is found.
+     */
     public Match<E> lookingAt(List<E> tokens, int start) {
         return auto.lookingAt(tokens, start);
     }
     
-    /*
     /***
      * Find all non-overlapping matches of the regular expression against tokens.
      * 
      * @param tokens
-     * @return
+     * @return an list of objects representing the match.
      */
     public List<Match<E>> findAll(List<E> tokens) {
         List<Match<E>> results = new ArrayList<Match<E>>();
@@ -98,164 +157,6 @@ public class RegularExpression<E> implements Predicate<List<E>> {
         } while (match != null);
 
         return results;
-    }
-
-    /***
-     * Attempt to match the regular expression to the start of tokens.
-     * 
-     * @param expressions
-     * @param tokens
-     * @param tokenIndex
-     * @return
-     */
-    private int tryRegex(List<Expression<E>> expressions, List<E> tokens,
-            int tokenIndex) {
-        if (expressions.size() == 0) {
-            return tokenIndex;
-        }
-        if (tokens.size() == 0) {
-            // makes sure the rest of the expression is option
-            for (Expression<E> expr : expressions) {
-                if (!(expr instanceof Expression.Star || expr instanceof Expression.Option)) {
-                    return -1;
-                }
-            }
-
-            return tokenIndex;
-        }
-
-        Expression<E> expr = expressions.get(0);
-        E token = tokens.get(0);
-
-        if (expr instanceof Expression.Star<?>
-                || expr instanceof Expression.Plus<?>
-                || expr instanceof Expression.Option<?>) {
-
-            if (expr.apply(token)) {
-                int index;
-
-                // * and +
-                if (expr instanceof Expression.Star<?>
-                        || expr instanceof Expression.Plus<?>) {
-                    // consume one token
-                    index = tryRegex(expressions,
-                            tokens.subList(1, tokens.size()), tokenIndex + 1);
-                    if (index >= 0) {
-                        return index;
-                    }
-                }
-
-                // consume one token and the expression
-                index = tryRegex(expressions.subList(1, expressions.size()),
-                        tokens.subList(1, tokens.size()), tokenIndex + 1);
-                if (index >= 0) {
-                    return index;
-                }
-            }
-
-            // * and ?
-            if (expr instanceof Expression.Star<?>
-                    || expr instanceof Expression.Option<?>) {
-                // consume one expression
-                return tryRegex(expressions.subList(1, expressions.size()),
-                        tokens, tokenIndex);
-            }
-        }
-
-        else if (expr instanceof Expression.BaseExpression<?>) {
-            if (expr.apply(token)) {
-                // consume one token and one expression
-                return tryRegex(expressions.subList(1, expressions.size()),
-                        tokens.subList(1, tokens.size()), tokenIndex + 1);
-            }
-        }
-
-        return -1;
-    }
-
-    private boolean tryRegexDetail(List<Expression<E>> expressions,
-            List<E> tokens, int index, Match<E> match) {
-        // no more expressions, so we have a match
-        if (expressions.size() == 0) {
-            return true;
-        }
-
-        // no more tokens, match iff only optional expressions left
-        if (tokens.size() == 0) {
-            // makes sure the rest of the expression is option
-            for (Expression<E> expr : expressions) {
-                if (!(expr instanceof Expression.Star || expr instanceof Expression.Option)) {
-                    return false;
-                }
-
-                match.add(new Match.Group<E>(expr));
-            }
-
-            return true;
-        }
-
-        Expression<E> expr = expressions.get(0);
-        E token = tokens.get(0);
-
-        int oldSize;
-
-        if (expr instanceof Expression.Star<?>
-                || expr instanceof Expression.Plus<?>
-                || expr instanceof Expression.Option<?>) {
-            if (expr.apply(token)) {
-
-                // consume one token (* and +)
-                if (expr instanceof Expression.Star<?>
-                        || expr instanceof Expression.Plus<?>) {
-
-                    oldSize = match.size();
-                    match.add(new Match.Group<E>(expr, token, index));
-                    if (tryRegexDetail(expressions,
-                            tokens.subList(1, tokens.size()), index + 1, match)) {
-                        return true;
-                    }
-
-                    match.truncate(oldSize);
-                }
-
-                // consume one token and the expression
-                oldSize = match.size();
-                match.add(new Match.Group<E>(expr, token, index));
-                if (tryRegexDetail(expressions.subList(1, expressions.size()),
-                        tokens.subList(1, tokens.size()), index + 1, match)) {
-                    return true;
-                }
-
-                match.truncate(oldSize);
-            }
-
-            // consume one expression
-            if (expr instanceof Expression.Star<?>
-                    || expr instanceof Expression.Option<?>) {
-
-                oldSize = match.size();
-                match.add(new Match.Group<E>(expr));
-                if (tryRegexDetail(expressions.subList(1, expressions.size()),
-                        tokens, index, match)) {
-                    return true;
-                }
-
-                match.truncate(oldSize);
-            }
-        }
-
-        else if (expr instanceof Expression.BaseExpression<?>) {
-            if (expr.apply(token)) {
-                // consume one token and one expression
-                oldSize = match.size();
-                match.add(new Match.Group<E>(expr, token, index));
-                return tryRegexDetail(
-                        expressions.subList(1, expressions.size()),
-                        tokens.subList(1, tokens.size()), index + 1, match);
-            }
-        }
-
-        return false;
     }
 
     /***
@@ -427,32 +328,12 @@ public class RegularExpression<E> implements Predicate<List<E>> {
         return StringUtils.splitInto(expression, tokenPattern);
     }
     
-    @Override
-    public boolean equals(Object other) {
-        if (! (other instanceof RegularExpression)) {
-            return false;
-        }
-        
-        RegularExpression<?> expression = (RegularExpression<?>) other;
-        return this.toString().equals(expression.toString());
-    }
-    
-    @Override
-    public int hashCode() {
-        return this.toString().hashCode();
-    }
-
-    @Override
-    public String toString() {
-        List<String> expressions = new ArrayList<String>(
-                this.expressions.size());
-        for (Expression<E> expr : this.expressions) {
-            expressions.add(expr.toString());
-        }
-
-        return Joiner.on(" ").join(expressions);
-    }
-    
+    /***
+     * An interactive program that compiles an expression specified in arg1
+     * and then reads strings from stdin, evaluating them against the
+     * regular expression.
+     * @param args
+     */
     public static void main(String[] args) {
         Scanner scan = new Scanner(System.in);
                 

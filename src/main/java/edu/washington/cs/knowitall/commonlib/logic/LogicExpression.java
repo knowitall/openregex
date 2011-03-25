@@ -9,55 +9,43 @@ import java.util.Stack;
 
 import com.google.common.base.Predicate;
 
+import edu.washington.cs.knowitall.commonlib.logic.LogicException.ApplyLogicException;
+import edu.washington.cs.knowitall.commonlib.logic.LogicException.CompileLogicException;
+import edu.washington.cs.knowitall.commonlib.logic.LogicException.TokenizeLogicException;
 import edu.washington.cs.knowitall.commonlib.logic.Tok.Arg;
 
 public class LogicExpression<E> implements Predicate<E> {
-    public static class LogicException extends RuntimeException {
-        private static final long serialVersionUID = 1L;
-
-        public LogicException(String message) {
-            super(message);
-        }
-    }
-
-    public static class ApplyLogicException extends LogicException {
-        private static final long serialVersionUID = 1L;
-
-        public ApplyLogicException(String message) {
-            super(message);
-        }
-    }
-
-    public static class CompileLogicException extends LogicException {
-        private static final long serialVersionUID = 1L;
-
-        public CompileLogicException(String message) {
-            super(message);
-        }
-    }
-
-    public static class TokenizeLogicException extends LogicException {
-        private static final long serialVersionUID = 1L;
-
-        public TokenizeLogicException(String message) {
-            super(message);
-        }
-    }
-
-    final Tok.Apply<E> expression;
-
+    private final Tok.Apply<E> expression;
+    
+    /***
+     * 
+     * @param input an infix representation of the logic expression.
+     * @param factory a delegate to convert the string representation of an
+     * expression to a token.
+     * @throws TokenizeLogicException
+     * @throws CompileLogicException
+     */
     public LogicExpression(String input, ArgFactory<E> factory)
-            throws CompileLogicException, TokenizeLogicException {
+            throws TokenizeLogicException, CompileLogicException {
         // convert to tokens
-        List<Tok> tokens = tokenize(input, factory);
+        List<Tok<E>> tokens = tokenize(input, factory);
         
         // put in reverse polish notation
-        List<Tok> rpn = rpn(tokens);
+        List<Tok<E>> rpn = rpn(tokens);
         
         // compile the expression
         expression = compile(rpn);
     }
     
+    public String toString() {
+        return expression.toString();
+    }
+
+    
+    /***
+     * If the expression is empty, it returns true for all inputs.
+     * @return true iff the expression is empty.
+     */
     public boolean isEmpty() {
         return this.expression == null;
     }
@@ -72,14 +60,18 @@ public class LogicExpression<E> implements Predicate<E> {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public Tok.Apply<E> compile(List<Tok> rpn) {
+    /***
+     * Compile a rpn list of tokens into an expression tree.
+     * @param rpn a list of tokens in infix form.
+     * @return an expression tree.
+     */
+    public Tok.Apply<E> compile(List<Tok<E>> rpn) {
         if (rpn.isEmpty()) {
             return null;
         }
         
         Stack<Tok.Apply<E>> stack = new Stack<Tok.Apply<E>>();
-        for (Tok tok : rpn) {
+        for (Tok<E> tok : rpn) {
             if (tok instanceof Tok.Arg<?>) {
                 stack.push((Tok.Arg<E>) tok);
             } else if (tok instanceof Tok.Op) {
@@ -129,6 +121,10 @@ public class LogicExpression<E> implements Predicate<E> {
         return ((Tok.Apply<E>) stack.pop());
     }
     
+    /***
+     * Return a list of the arguments contained in the expression.
+     * @return
+     */
     public List<String> getArgs() {
         List<String> args = new ArrayList<String>();
         getArgs(this.expression, args);
@@ -136,7 +132,12 @@ public class LogicExpression<E> implements Predicate<E> {
         return args;
     }
     
-    public void getArgs(Tok.Apply<?> apply, List<String> args) {
+    /***
+     * Private helper method to recursively find arguments.
+     * @param apply the expression tree to search.
+     * @param args the resulting list of arguments.
+     */
+    private void getArgs(Tok.Apply<?> apply, List<String> args) {
         if (apply instanceof Tok.Op.Bin<?>) {
             Tok.Op.Bin<?> bin = (Tok.Op.Bin<?>) apply;
             
@@ -148,12 +149,15 @@ public class LogicExpression<E> implements Predicate<E> {
         }
     }
 
-    public String toString() {
-        return expression.toString();
-    }
-
-    public List<Tok> tokenize(String input, ArgFactory<E> factory) throws TokenizeLogicException {
-        List<Tok> tokens = new ArrayList<Tok>();
+    /***
+     * Convert an infix string logic representation to an infix list of tokens.
+     * @param input an infix string logic representation.
+     * @param factory a delegate that converts a string representation of an argument into a token object.
+     * @return 
+     * @throws TokenizeLogicException
+     */
+    public List<Tok<E>> tokenize(String input, ArgFactory<E> factory) throws TokenizeLogicException {
+        List<Tok<E>> tokens = new ArrayList<Tok<E>>();
 
         int i = 0;
         while (i < input.length()) {
@@ -165,10 +169,10 @@ public class LogicExpression<E> implements Predicate<E> {
                 continue;
             }
             else if (firstChar == '(') {
-                tokens.add(new Tok.Paren.L());
+                tokens.add(new Tok.Paren.L<E>());
                 i += 1;
             } else if (firstChar == ')') {
-                tokens.add(new Tok.Paren.R());
+                tokens.add(new Tok.Paren.R<E>());
                 i += 1;
             } else if (firstChar == '!') {
                 tokens.add(new Tok.Op.Mon.Not<E>());
@@ -221,7 +225,7 @@ public class LogicExpression<E> implements Predicate<E> {
                     throw new TokenizeLogicException("zero-length token found.");
                 }
                 
-                tokens.add(factory.buildArg(token));
+                tokens.add(factory.apply(token));
                 i += token.length();
             }
         }
@@ -229,18 +233,26 @@ public class LogicExpression<E> implements Predicate<E> {
         return tokens;
     }
 
-    @SuppressWarnings("unchecked")
-    public List<Tok> rpn(List<Tok> tokens)
+    /***
+     * Converts an infix logic representation into a postfix logic representation.
+     * @param tokens a list of tokens in infix form.
+     * @return a list of tokens in postfix (rpn) form.
+     * @throws CompileLogicException
+     */
+    public List<Tok<E>> rpn(List<Tok<E>> tokens)
             throws CompileLogicException {
-        Stack<Tok> stack = new Stack<Tok>();
-        LinkedList<Tok> output = new LinkedList<Tok>();
+        // intermediate storage
+        Stack<Tok<E>> stack = new Stack<Tok<E>>();
+        
+        // final rpn output
+        LinkedList<Tok<E>> output = new LinkedList<Tok<E>>();
 
         int i = 0;
-        for (Tok tok : tokens) {
+        for (Tok<E> tok : tokens) {
             if (tok instanceof Tok.Paren.L) {
                 stack.push(tok);
             } else if (tok instanceof Tok.Paren.R) {
-                Tok top;
+                Tok<E> top;
                 do {
                     top = stack.pop();
 
@@ -256,7 +268,7 @@ public class LogicExpression<E> implements Predicate<E> {
             } else if (tok instanceof Tok.Op.Bin) {
                 // higher precedence
                 while (!stack.isEmpty() && stack.peek() instanceof Tok.Op 
-                        && ((Tok.Op<Tok>)stack.peek()).preceeds((Tok.Op<Tok>)tok)) {
+                        && ((Tok.Op<?>)stack.peek()).preceeds((Tok.Op<?>)tok)) {
                     output.offer(stack.pop());
                 }
                 
@@ -266,8 +278,9 @@ public class LogicExpression<E> implements Predicate<E> {
             }
         }
 
+        // empty out items remaining ni the stack
         while (!stack.isEmpty()) {
-            Tok top = stack.pop();
+            Tok<E> top = stack.pop();
 
             if (top instanceof Tok.Paren.L || top instanceof Tok.Paren.R) {
                 throw new CompileLogicException("Unbalanced parentheses.");
@@ -279,6 +292,11 @@ public class LogicExpression<E> implements Predicate<E> {
         return output;
     }
     
+    
+    /***
+     * Iteractively interpret logic statements from stdin such as "true | (true & false)".
+     * @param args
+     */
     public static void main(String[] args) {
         Scanner scan = new Scanner(System.in);
         
@@ -287,8 +305,7 @@ public class LogicExpression<E> implements Predicate<E> {
             
             LogicExpression<String> expr = new LogicExpression<String>(line, new ArgFactory<String>() {
                 @Override
-                public Arg<String> buildArg(final String string)
-                        throws TokenizeLogicException {
+                public Arg<String> create(final String string) {
                     return new Arg.Pred<String>(string) {
                         @Override
                         public boolean apply(String entity) {

@@ -2,13 +2,13 @@ package edu.washington.cs.knowitall.commonlib.logic;
 
 import com.google.common.base.Predicate;
 
-public class Tok {
-    public static abstract class Apply<E> extends Tok {
+public class Tok<E> {
+    public static abstract class Apply<E> extends Tok<E> {
         public abstract boolean apply(E entity);
     }
     
     public static abstract class Op<E> extends Apply<E> {
-        public boolean preceeds(Op<E> other) {
+        public boolean preceeds(Op<?> other) {
             return this.precedence() < other.precedence();
         }
         
@@ -133,14 +133,14 @@ public class Tok {
         }
     }
 
-    public static class Paren extends Tok {
-        public static class L extends Paren {
+    public static class Paren<E> extends Tok<E> {
+        public static class L<E> extends Paren<E> {
             public String toString() {
                 return "(";
             }
         }
 
-        public static class R extends Tok {
+        public static class R<E> extends Paren<E> {
             public String toString() {
                 return ")";
             }

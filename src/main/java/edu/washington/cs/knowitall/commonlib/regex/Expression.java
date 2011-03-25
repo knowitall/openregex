@@ -14,6 +14,13 @@ public interface Expression<E> extends Predicate<E> {
     
     public Automaton<E> build();
     
+    /***
+     * Represents a matching group that is referred to by order number.
+     *     {@code (<foo> <bar>+)}
+     * @author schmmd
+     *
+     * @param <E> 
+     */
     public class Group<E> implements Expression<E> {
         public final List<Expression<E>> expressions;
 
@@ -40,6 +47,10 @@ public interface Expression<E> extends Predicate<E> {
             return "(" + subexpString() + ")";
         }
         
+        /***
+         * Convert the expression into a NFA.
+         */
+        @Override
         public Automaton<E> build() {
             Automaton<E> auto = new Automaton<E>(this);
             
@@ -70,6 +81,13 @@ public interface Expression<E> extends Predicate<E> {
         }
     }
     
+    /***
+     * Represents a matching group that is referred to by name.
+     *     {@code (<name>:<foo> <bar>+)}
+     * @author schmmd
+     *
+     * @param <E> 
+     */
     public class NamedGroup<E> extends Group<E> {
         public final String name;
         
@@ -84,6 +102,13 @@ public interface Expression<E> extends Predicate<E> {
         }
     }
     
+    /***
+     * Represents a non-matching group.
+     *     {@code (?:<foo> <bar>+)}
+     * @author schmmd
+     *
+     * @param <E>
+     */
     public class UnnamedGroup<E> extends Group<E> {
         public UnnamedGroup(List<Expression<E>> expressions) {
             super(expressions);
@@ -95,6 +120,13 @@ public interface Expression<E> extends Predicate<E> {
         }
     }
     
+    /***
+     * Disjunction of two experssions.
+     *     {@code <foo>|<bar>}
+     * @author schmmd
+     *
+     * @param <E>
+     */
     public static class Or<E> implements Expression<E> {
         Expression<E> expr1;
         Expression<E> expr2;
@@ -114,6 +146,10 @@ public interface Expression<E> extends Predicate<E> {
             return this.expr1.toString() + " | " + this.expr2.toString();
         }
         
+        /***
+         * Convert the expression into a NFA.
+         */
+        @Override
         public Automaton<E> build() {
             Automaton<E> auto = new Automaton<E>(this);
             
@@ -130,6 +166,13 @@ public interface Expression<E> extends Predicate<E> {
         }
     }
     
+    /***
+     * Kleene-star: zero or more of the enclosed expression.
+     *     {@code <foo>*}
+     * @author schmmd
+     *
+     * @param <E>
+     */
     public static class Star<E> implements Expression<E> {
         Expression<E> expr;
         
@@ -147,6 +190,10 @@ public interface Expression<E> extends Predicate<E> {
             return this.expr.toString() + "*";
         }
         
+        /***
+         * Convert the expression into a NFA.
+         */
+        @Override
         public Automaton<E> build() {
             Automaton<E> auto = new Automaton<E>(this);
             
@@ -166,6 +213,14 @@ public interface Expression<E> extends Predicate<E> {
         }
     }
     
+    /***
+     * One or more of the enclosed expression.  Plus(expr) is equivalent to
+     * expr followed by Star(expr).
+     *     {@code <foo>+} is the same as {@code <foo> <foo>*}
+     * @author schmmd
+     *
+     * @param <E>
+     */
     public static class Plus<E> implements Expression<E> {
         public final Expression<E> expr;
         
@@ -183,6 +238,10 @@ public interface Expression<E> extends Predicate<E> {
             return this.expr.toString() + "+";
         }
         
+        /***
+         * Convert the expression into a NFA.
+         */
+        @Override
         public Automaton<E> build() {
             Automaton<E> auto = new Automaton<E>(this);
             
@@ -199,6 +258,13 @@ public interface Expression<E> extends Predicate<E> {
         }
     }
     
+    /***
+     * Zero or one of the enclosed expression.
+     *     {@code <foo>?}
+     * @author schmmd
+     *
+     * @param <E>
+     */
     public static class Option<E> implements Expression<E> {
         Expression<E> expr;
         
@@ -216,6 +282,10 @@ public interface Expression<E> extends Predicate<E> {
             return this.expr.toString() + "?";
         }
         
+        /***
+         * Convert the expression into a NFA.
+         */
+        @Override
         public Automaton<E> build() {
             Automaton<E> auto = new Automaton<E>(this);
             
@@ -232,6 +302,13 @@ public interface Expression<E> extends Predicate<E> {
         }
     }
     
+    /***
+     * An expression with no subexpression that is evaluated against a token
+     * using the supplied delegate.
+     * @author schmmd
+     *
+     * @param <E>
+     */
     static abstract class BaseExpression<E> implements Expression<E> {
         private final String source;
         
@@ -239,6 +316,10 @@ public interface Expression<E> extends Predicate<E> {
             this.source = source;
         }
 
+        /***
+         * The delegate to evaluate the expression against a token.
+         */
+        @Override
         public abstract boolean apply(E entity);
         
         public String toString() {
@@ -250,22 +331,9 @@ public interface Expression<E> extends Predicate<E> {
             }
         }
         
-        public Automaton<E> build() {
-            Automaton<E> auto = new Automaton<E>(this);
-            
-            auto.start.connect(auto.end, this);
-            
-            return auto;
-        }
-    }
-    
-    static abstract class AssertionExpression<E> implements Expression<E> {
-        public boolean apply(E entity) {
-            return false;
-        }
-        
-        public abstract boolean apply(boolean hasStart, List<E> tokens, int count);
-
+        /***
+         * Convert the expression into a NFA.
+         */
         @Override
         public Automaton<E> build() {
             Automaton<E> auto = new Automaton<E>(this);
@@ -276,21 +344,67 @@ public interface Expression<E> extends Predicate<E> {
         }
     }
     
+    /***
+     * A non-consuming expression that matches a token against a property of 
+     * the text, such as the start or end of a line.
+     * @author schmmd
+     *
+     * @param <E>
+     */
+    static abstract class AssertionExpression<E> implements Expression<E> {
+        @Override
+        public boolean apply(E entity) {
+            return false;
+        }
+        
+        public abstract boolean apply(boolean hasStart, List<E> tokens, int count);
+
+        /***
+         * Convert the expression into a NFA.
+         */
+        @Override
+        public Automaton<E> build() {
+            Automaton<E> auto = new Automaton<E>(this);
+            
+            auto.start.connect(auto.end, this);
+            
+            return auto;
+        }
+    }
+    
+    /***
+     * A non-consuming expression that matches the start of a line.
+     *     {@code ^<foo>}
+     * @author schmmd
+     *
+     * @param <E>
+     */
     static class StartAssertion<E> extends AssertionExpression<E> {
+        @Override
         public boolean apply(boolean hasStart, List<E> tokens, int count) {
             return hasStart && tokens.size() == count;
         }
         
+        @Override
         public String toString() {
             return "^";
         }
     }
     
+    /***
+     * A non-consuming expression that matches the end of a line.
+     *     {@code <foo>$}
+     * @author schmmd
+     *
+     * @param <E>
+     */
     static class EndAssertion<E> extends AssertionExpression<E> {
+        @Override
         public boolean apply(boolean hasStart, List<E> tokens, int count) {
             return tokens.isEmpty();
         }
         
+        @Override
         public String toString() {
             return "$";
         }
