@@ -21,10 +21,10 @@ public interface Expression<E> extends Predicate<E> {
      *
      * @param <E> 
      */
-    public class Group<E> implements Expression<E> {
+    public class MatchingGroup<E> implements Expression<E> {
         public final List<Expression<E>> expressions;
 
-        public Group(List<Expression<E>> expressions) {
+        public MatchingGroup(List<Expression<E>> expressions) {
             this.expressions = expressions;
         }
         
@@ -88,7 +88,7 @@ public interface Expression<E> extends Predicate<E> {
      *
      * @param <E> 
      */
-    public class NamedGroup<E> extends Group<E> {
+    public class NamedGroup<E> extends MatchingGroup<E> {
         public final String name;
         
         public NamedGroup(String name, List<Expression<E>> expressions) {
@@ -109,8 +109,8 @@ public interface Expression<E> extends Predicate<E> {
      *
      * @param <E>
      */
-    public class UnnamedGroup<E> extends Group<E> {
-        public UnnamedGroup(List<Expression<E>> expressions) {
+    public class NonMatchingGroup<E> extends MatchingGroup<E> {
+        public NonMatchingGroup(List<Expression<E>> expressions) {
             super(expressions);
         }
         

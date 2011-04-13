@@ -58,7 +58,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
      * @return
      */
     protected Automaton<E> build(List<Expression<E>> exprs) {
-        Expression.Group<E> group = new Expression.Group<E>(exprs);
+        Expression.MatchingGroup<E> group = new Expression.MatchingGroup<E>(exprs);
         return group.build();
     }
 
@@ -130,6 +130,16 @@ public class RegularExpression<E> implements Predicate<List<E>> {
      */
     public Match<E> lookingAt(List<E> tokens, int start) {
         return auto.lookingAt(tokens, start);
+    }
+    
+    public Match<E> match(List<E> tokens) {
+        Match<E> match = this.lookingAt(tokens);
+        if (match != null && match.range().getEnd() == tokens.size()) {
+            return match;
+        }
+        else {
+            return null;
+        }
     }
     
     /***
@@ -215,12 +225,12 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                         group = matcher.group(1);
                         List<Expression<E>> groupExpressions = this.tokenize(group,
                                 factory);
-                        expressions.add(new Expression.UnnamedGroup<E>(groupExpressions));
+                        expressions.add(new Expression.NonMatchingGroup<E>(groupExpressions));
                     }
                     else {
                         List<Expression<E>> groupExpressions = this.tokenize(group,
                                 factory);
-                        expressions.add(new Expression.Group<E>(groupExpressions));
+                        expressions.add(new Expression.MatchingGroup<E>(groupExpressions));
                     }
                 }
                 else if (c == '<' || c == '[') {

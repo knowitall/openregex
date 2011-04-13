@@ -62,7 +62,7 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
                 + "]";
     }
 
-    public String toPrettyString() {
+    public String toMultilineString() {
         return Joiner.on("\n").join(
                 Lists.transform(this, Functions.toStringFunction()));
     }
@@ -178,8 +178,8 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
         public List<Group<E>> groups() {
             List<Group<E>> groups = new ArrayList<Group<E>>();
             for (Group<E> pair : this) {
-                if (pair.expr instanceof Expression.Group<?> 
-                && !(pair.expr instanceof Expression.UnnamedGroup<?>)) {
+                if (pair.expr instanceof Expression.MatchingGroup<?> 
+                && !(pair.expr instanceof Expression.NonMatchingGroup<?>)) {
                     groups.add(pair);
                 }
             }

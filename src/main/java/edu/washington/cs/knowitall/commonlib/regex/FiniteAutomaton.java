@@ -9,6 +9,7 @@ import com.google.common.collect.Iterables;
 
 import edu.washington.cs.knowitall.commonlib.mutable.MutableInteger;
 import edu.washington.cs.knowitall.commonlib.regex.Expression.AssertionExpression;
+import edu.washington.cs.knowitall.commonlib.regex.Expression.MatchingGroup;
 
 /***
  * A finite automaton implementation.  There is support for epsilon
@@ -101,7 +102,7 @@ public class FiniteAutomaton {
                 }
             }
             
-            if (expression != null && !newMatch.isEmpty()) {
+            if (expression != null && (!newMatch.isEmpty() || expression instanceof MatchingGroup<?>)) {
                 Match.Group<E> pair = new Match.Group<E>(expression);
                 for (Match.Group<E> p : newMatch) {
                     if (p.expr instanceof Expression.BaseExpression<?>) {
