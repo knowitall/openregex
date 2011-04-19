@@ -7,7 +7,6 @@ import java.util.List;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 import edu.washington.cs.knowitall.commonlib.Range;
@@ -200,7 +199,7 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
         
         @Override
         public int endIndex() {
-            for (Match.Group<E> pair : Iterables.reverse(this)) {
+            for (Match.Group<E> pair : Lists.reverse(this)) {
                 if (pair.expr instanceof Expression.BaseExpression<?>) {
                     return pair.tokens.get(0).index;
                 }

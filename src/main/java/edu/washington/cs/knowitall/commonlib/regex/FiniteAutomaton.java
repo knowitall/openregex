@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 import edu.washington.cs.knowitall.commonlib.mutable.MutableInteger;
 import edu.washington.cs.knowitall.commonlib.regex.Expression.AssertionExpression;
@@ -64,7 +65,7 @@ public class FiniteAutomaton {
             }
             
             Match.IntermediateMatch<E> match = new Match.IntermediateMatch<E>();
-            buildMatch(sublist.iterator(), null, new MutableInteger(startIndex), this.start, Iterables.reverse(edges).iterator(), match);
+            buildMatch(sublist.iterator(), null, new MutableInteger(startIndex), this.start, Lists.reverse(edges).iterator(), match);
             return new Match.FinalMatch<E>(match);
         }
         
