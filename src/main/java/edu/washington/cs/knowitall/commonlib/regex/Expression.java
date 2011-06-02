@@ -323,12 +323,7 @@ public interface Expression<E> extends Predicate<E> {
         public abstract boolean apply(E entity);
         
         public String toString() {
-            if (this.source.length() > 40) {
-                return "<" + this.source.substring(0, 40) + "...>";
-            }
-            else {
-                return "<" + this.source + ">";
-            }
+            return "<" + this.source + ">";
         }
         
         /***
