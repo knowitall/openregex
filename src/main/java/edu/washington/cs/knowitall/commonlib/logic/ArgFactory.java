@@ -16,6 +16,10 @@ public abstract class ArgFactory<E> implements Function<String, Tok.Arg<E>> {
      */
     public abstract Tok.Arg<E> create(String string);
     
+    /***
+     * Method to satisfy abstract superclass.
+     */
+    @Override
     public Tok.Arg<E> apply(String string) {
         return this.create(string);
     }
