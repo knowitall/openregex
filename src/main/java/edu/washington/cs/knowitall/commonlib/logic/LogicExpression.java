@@ -247,7 +247,6 @@ public class LogicExpression<E> implements Predicate<E> {
         // final rpn output
         LinkedList<Tok<E>> output = new LinkedList<Tok<E>>();
 
-        int i = 0;
         for (Tok<E> tok : tokens) {
             if (tok instanceof Tok.Paren.L<?>) {
                 stack.push(tok);
@@ -262,7 +261,6 @@ public class LogicExpression<E> implements Predicate<E> {
 
                 } while (!(top instanceof Tok.Paren.L<?>));
 
-                i += 1;
             } else if (tok instanceof Tok.Op.Mon<?>) {
                 stack.push(tok);
             } else if (tok instanceof Tok.Op.Bin<?>) {
