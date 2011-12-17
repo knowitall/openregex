@@ -251,7 +251,7 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
          * Add tokens to the group.
          * @param group
          */
-        public void addTokens(Group<E> group) {
+        protected void addTokens(Group<E> group) {
             this.tokens.addAll(group.tokens);
         }
         
