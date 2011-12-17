@@ -28,7 +28,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
     
     @Override
     public boolean equals(Object other) {
-        if (! (other instanceof RegularExpression)) {
+        if (! (other instanceof RegularExpression<?>)) {
             return false;
         }
         
@@ -186,11 +186,12 @@ public class RegularExpression<E> implements Predicate<List<E>> {
             // skip whitespace
             if ((matcher = whitespacePattern.matcher(string)).region(start, string.length()).lookingAt()) {
                 start = matcher.end();
+                continue;
             }
             
             // tokenize group
             char c = string.charAt(start);
-            if (c == '(' || c == '<' || c == '[') {
+            if (c == '(' || c == '<' || c == '[' || c == '$' || c == '^') {
                 if (string.charAt(start) == '(') {
                     int end = StringUtils.indexOfClose(string, start, '(', ')');
                     if (end == -1) {
@@ -250,6 +251,14 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                         throw new TokenizeRegexException("Error parsing token: " + token, e);
                     }
                 }
+                else if (c == '^') {
+                    expressions.add(new StartAssertion<E>());
+                    start += 1;
+                }
+                else if (c == '$') {
+                    expressions.add(new EndAssertion<E>());
+                    start += 1;
+                }
                 
                 // check if we have a floating OR operator
                 if (stack == '|') {
@@ -267,14 +276,6 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                         throw new TokenizeRegexException("Error parsing OR (|) operator.", e);
                     }
                 }
-            }
-            else if (c == '^') {
-                expressions.add(new StartAssertion<E>());
-                start += 1;
-            }
-            else if (c == '$') {
-                expressions.add(new EndAssertion<E>());
-                start += 1;
             }
             else if ((matcher = unaryPattern.matcher(string)).region(start, string.length()).lookingAt()) {
                 char operator = matcher.group(0).charAt(0);
