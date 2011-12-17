@@ -1,8 +1,35 @@
 package edu.washington.cs.knowitall.commonlib.regex;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 
 public interface Expression<E> extends Predicate<E> {
+    
+    public class Group<E> implements Expression<E> {
+        public final List<Expression<E>> expressions;
+
+        public Group(List<Expression<E>> expressions) {
+            this.expressions = expressions;
+        }
+        
+        @Override
+        public boolean apply(E entity) {
+            throw new UnsupportedOperationException();
+        }
+        
+        @Override
+        public String toString() {
+            List<String> subs = new ArrayList<String>(this.expressions.size());
+            for (Expression<E> expr : this.expressions) {
+                subs.add(expr.toString());
+            }
+            
+            return "(" + Joiner.on(" ").join(subs) + ")";
+        }
+    }
     
     public static class Star<E> implements Expression<E> {
         Expression<E> expr;
@@ -23,7 +50,7 @@ public interface Expression<E> extends Predicate<E> {
     }
     
     public static class Plus<E> implements Expression<E> {
-        Expression<E> expr;
+        public final Expression<E> expr;
         
         public Plus(Expression<E> expr) {
             this.expr = expr;
@@ -65,7 +92,7 @@ public interface Expression<E> extends Predicate<E> {
             this.source = source;
         }
 
-        public abstract boolean apply(E arg0);
+        public abstract boolean apply(E entity);
         
         public String toString() {
             if (this.source.length() > 40) {

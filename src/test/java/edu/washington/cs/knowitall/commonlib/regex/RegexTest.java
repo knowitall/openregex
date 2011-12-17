@@ -25,6 +25,13 @@ public class RegexTest {
                         };
                     }
                 });
+        
+        Match<String> match;
+        
+        match = regex.lookingAt(
+                Arrays.asList(
+                        new String[] {"this", "is", "a", "a", "a", "good", "test" }));
+        Assert.assertEquals(match.toString(), "[{<th.*s>*:'this'}, {<is>+:'is'}, {<a>*:'a a a'}, {<good>?:'good'}, {<test>:'test'}]");
 
         // different forms of "this"
         Assert.assertTrue(regex.apply(Arrays.asList(
@@ -209,5 +216,62 @@ public class RegexTest {
                 ("a").split(" "))));
         Assert.assertTrue(regex.apply(Arrays.asList(
                 ("a A").split(" "))));
+    }
+    
+    /*
+    @Test
+    public void testRegexGroup() {
+
+        String input = "(<th.*s> <is>) <a>+ <good> <test>";
+        RegularExpression<String> regex = new RegularExpression<String>(input,
+                new ExpressionFactory<String>() {
+                    @Override
+                    public BaseExpression<String> create(final String string) {
+                        return new BaseExpression<String>(string) {
+
+                            @Override
+                            public boolean apply(String token) {
+                                return token.matches(string);
+                            }
+                        };
+                    }
+                });
+        
+        // multiple <a> and succeed
+        Assert.assertTrue(regex.apply(Arrays.asList(
+                ("this is a good test").split(" "))));
+        Assert.assertTrue(regex.apply(Arrays.asList(
+                ("this is a a good test").split(" "))));
+        Assert.assertTrue(regex.apply(Arrays.asList(
+                ("this is a a a good test").split(" "))));
+        
+        Assert.assertFalse(regex.apply(Arrays.asList(
+                ("this is good test").split(" "))));
+    }
+    */
+    @Test
+    public void testGroupRegex1() {
+        String input = "(<th.*s>* <is>+) (<a>* <good>? <test>) <right>";
+        RegularExpression<String> regex = new RegularExpression<String>(input,
+                new ExpressionFactory<String>() {
+                    @Override
+                    public BaseExpression<String> create(final String string) {
+                        return new BaseExpression<String>(string) {
+
+                            @Override
+                            public boolean apply(String token) {
+                                return token.matches(string);
+                            }
+                        };
+                    }
+                });
+        
+        Match<String> match;
+        match = regex.lookingAt(
+                Arrays.asList(
+                        new String[] {"this", "is", "a", "a", "a", "good", "test", "right" }));
+        
+        Assert.assertNotNull(match);
+        Assert.assertEquals(match.toString(), "[{(<th.*s>* <is>+):'{<th.*s>*:'this'} {<is>+:'is'}'}, {(<a>* <good>? <test>):'{<a>*:'a a a'} {<good>?:'good'} {<test>:'test'}'}, {<right>:'right'}]");
     }
 }
