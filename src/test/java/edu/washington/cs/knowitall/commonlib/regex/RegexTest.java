@@ -38,9 +38,9 @@ public class RegexTest {
                 "a", "a", "a", "good", "test" })));
 
         // different numbers of <a>
-        Assert.assertTrue(regex.apply(Arrays.asList(("this is a good test")
+        Assert.assertTrue(regex.apply(Arrays.asList(("this is a good test ")
                 .split(" "))));
-        Assert.assertTrue(regex.apply(Arrays.asList(("this is a a good test")
+        Assert.assertTrue(regex.apply(Arrays.asList(("this is a a good test ")
                 .split(" "))));
         Assert.assertTrue(regex.apply(Arrays.asList(("this is a a a good test")
                 .split(" "))));
