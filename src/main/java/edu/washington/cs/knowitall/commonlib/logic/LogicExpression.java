@@ -74,9 +74,9 @@ public class LogicExpression<E> implements Predicate<E> {
         for (Tok<E> tok : rpn) {
             if (tok instanceof Tok.Arg<?>) {
                 stack.push((Tok.Arg<E>) tok);
-            } else if (tok instanceof Tok.Op) {
+            } else if (tok instanceof Tok.Op<?>) {
                 try {
-                    if (tok instanceof Tok.Op.Mon){
+                    if (tok instanceof Tok.Op.Mon<?>){
                        Tok.Apply<E> sub = (Tok.Apply<E>) stack.pop();
                        
                         Tok.Op.Mon<E> mon = (Tok.Op.Mon<E>) tok;
@@ -85,7 +85,7 @@ public class LogicExpression<E> implements Predicate<E> {
                         
                         stack.push(mon);
                     }
-                    if (tok instanceof Tok.Op.Bin) {
+                    if (tok instanceof Tok.Op.Bin<?>) {
                         Tok.Apply<E> arg2 = (Tok.Apply<E>) stack.pop();
                         Tok.Apply<E> arg1 = (Tok.Apply<E>) stack.pop();
                         
@@ -249,31 +249,31 @@ public class LogicExpression<E> implements Predicate<E> {
 
         int i = 0;
         for (Tok<E> tok : tokens) {
-            if (tok instanceof Tok.Paren.L) {
+            if (tok instanceof Tok.Paren.L<?>) {
                 stack.push(tok);
-            } else if (tok instanceof Tok.Paren.R) {
+            } else if (tok instanceof Tok.Paren.R<?>) {
                 Tok<E> top;
                 do {
                     top = stack.pop();
 
-                    if (!(top instanceof Tok.Paren.L)) {
+                    if (!(top instanceof Tok.Paren.L<?>)) {
                         output.offer(top);
                     }
 
-                } while (!(top instanceof Tok.Paren.L));
+                } while (!(top instanceof Tok.Paren.L<?>));
 
                 i += 1;
-            } else if (tok instanceof Tok.Op.Mon) {
+            } else if (tok instanceof Tok.Op.Mon<?>) {
                 stack.push(tok);
-            } else if (tok instanceof Tok.Op.Bin) {
+            } else if (tok instanceof Tok.Op.Bin<?>) {
                 // higher precedence
-                while (!stack.isEmpty() && stack.peek() instanceof Tok.Op 
+                while (!stack.isEmpty() && stack.peek() instanceof Tok.Op<?> 
                         && ((Tok.Op<?>)stack.peek()).preceeds((Tok.Op<?>)tok)) {
                     output.offer(stack.pop());
                 }
                 
                 stack.push(tok);
-            } else if (tok instanceof Tok.Arg) {
+            } else if (tok instanceof Tok.Arg<?>) {
                 output.offer(tok);
             }
         }
@@ -282,7 +282,7 @@ public class LogicExpression<E> implements Predicate<E> {
         while (!stack.isEmpty()) {
             Tok<E> top = stack.pop();
 
-            if (top instanceof Tok.Paren.L || top instanceof Tok.Paren.R) {
+            if (top instanceof Tok.Paren.L<?> || top instanceof Tok.Paren.R<?>) {
                 throw new CompileLogicException("Unbalanced parentheses.");
             }
 

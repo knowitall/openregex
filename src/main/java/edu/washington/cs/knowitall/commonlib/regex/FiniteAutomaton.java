@@ -196,7 +196,7 @@ public class FiniteAutomaton {
         private void expandAssertions(List<Step<E>> steps, List<Step<E>> newsteps, boolean hasStart, List<E> tokens, int totalTokens) {
             for (Step<E> step : steps) {
                 for (final Edge<E> edge : step.state.edges) {
-                    if (edge.expression instanceof AssertionExpression) {
+                    if (edge.expression instanceof AssertionExpression<?>) {
                         AssertionExpression<E> assertion = (AssertionExpression<E>)edge.expression;
                         
                         if (assertion.apply(hasStart, tokens, totalTokens)) {
