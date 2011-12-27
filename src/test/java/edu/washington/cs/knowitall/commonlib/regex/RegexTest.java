@@ -1,6 +1,7 @@
 package edu.washington.cs.knowitall.commonlib.regex;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -9,180 +10,305 @@ import edu.washington.cs.knowitall.commonlib.regex.Expression.BaseExpression;
 
 public class RegexTest {
     @Test
-    public void testRegex1() {
-
+    public void testRegexMatches() {
         String input = "<th.*s>* <is>+ <a>* <good>? <test>";
-        RegularExpression<String> regex = new RegularExpression<String>(input,
-                new ExpressionFactory<String>() {
-                    @Override
-                    public BaseExpression<String> create(final String string) {
-                        return new BaseExpression<String>(string) {
-
-                            @Override
-                            public boolean apply(String token) {
-                                return token.matches(string);
-                            }
-                        };
-                    }
-                });
-
-        // Assert.assertEquals(match.toString(),
-        // "[{<th.*s>*:'this'}, {<is>+:'is'}, {<a>*:'a a a'}, {<good>?:'good'}, {<test>:'test'}]");
+        RegularExpression<String> regex = 
+                makeRegex(input);
 
         // different forms of "this"
-        Assert.assertTrue(regex.apply(Arrays.asList(new String[] { "this",
-                "is", "a", "a", "a", "good", "test" })));
-        Assert.assertTrue(regex.apply(Arrays.asList(new String[] { "thes",
-                "is", "a", "a", "a", "good", "test" })));
-        Assert.assertTrue(regex.apply(Arrays.asList(new String[] { "ths", "is",
-                "a", "a", "a", "good", "test" })));
+        Assert.assertTrue(regex.matches(split("this is a a a good test")));
+        Assert.assertTrue(regex.matches(split("thes is a a a good test")));
+        Assert.assertTrue(regex.matches(split("ths is a a a good test")));
+        Assert.assertFalse(regex.matches(split("thiz is a a a good test")));
+        Assert.assertFalse(regex.matches(split("theE is a a a good test")));
+        Assert.assertFalse(regex.matches(split("thR is a a a good test")));
 
         // different numbers of <a>
-        Assert.assertTrue(regex.apply(Arrays.asList(("this is a good test ")
-                .split(" "))));
-        Assert.assertTrue(regex.apply(Arrays.asList(("this is a a good test ")
-                .split(" "))));
-        Assert.assertTrue(regex.apply(Arrays.asList(("this is a a a good test")
-                .split(" "))));
-        Assert.assertTrue(regex.apply(Arrays
-                .asList(("this is a a a a good test").split(" "))));
-        Assert.assertTrue(regex.apply(Arrays.asList(("this is good test")
-                .split(" "))));
+        Assert.assertTrue(regex.matches(split("this is a good test ")));
+        Assert.assertTrue(regex.matches(split("this is a a good test ")));
+        Assert.assertTrue(regex.matches(split("this is a a a good test")));
+        Assert.assertTrue(regex.matches(split("this is a a a a good test")));
+        Assert.assertTrue(regex.matches(split("this is good test")));
 
-        // god or no good
-        Assert.assertTrue(regex.apply(Arrays
-                .asList(("this is a a a a good test").split(" "))));
-        Assert.assertTrue(regex.apply(Arrays.asList(("this is good test")
-                .split(" "))));
-        Assert.assertTrue(regex.apply(Arrays.asList(("this is a a a a test")
-                .split(" "))));
-        Assert.assertTrue(regex.apply(Arrays.asList(("this is test").split(" "))));
-
-        // different numbers of <this>
-        Assert.assertTrue(regex.apply(Arrays.asList(("this is a good test")
-                .split(" "))));
-        Assert.assertTrue(regex.apply(Arrays.asList(("this is is a good test")
-                .split(" "))));
-        Assert.assertTrue(regex.apply(Arrays.asList(("this is is is test")
-                .split(" "))));
-        Assert.assertFalse(regex.apply(Arrays.asList(("this test").split(" "))));
-        Assert.assertFalse(regex.apply(Arrays.asList(("this a good test")
-                .split(" "))));
+        // with good
+        Assert.assertTrue(regex.matches(split("this is a a a a good test")));
+        Assert.assertTrue(regex.matches(split("this is a good test")));
+        Assert.assertTrue(regex.matches(split("this is good test")));
+        
+        // without good
+        Assert.assertTrue(regex.matches(split("this is a a a a test")));
+        Assert.assertTrue(regex.matches(split("this is a test")));
+        Assert.assertTrue(regex.matches(split("this is test")));
+        
+        // different numbers of "this" and "is"
+        // multiple "this"
+        Assert.assertTrue(regex.matches(split("this ths is a good test")));
+        Assert.assertTrue(regex.matches(split("this ths is is a good test")));
+        Assert.assertTrue(regex.matches(split("this ths is is is test")));
+        Assert.assertFalse(regex.matches(split("this ths test")));
+        Assert.assertFalse(regex.matches(split("this ths a good test")));
+        // single "this"
+        Assert.assertTrue(regex.matches(split("this is a good test")));
+        Assert.assertTrue(regex.matches(split("this is is a good test")));
+        Assert.assertTrue(regex.matches(split("this is is is test")));
+        Assert.assertFalse(regex.matches(split("this test")));
+        Assert.assertFalse(regex.matches(split("this a good test")));
+        // no "this"
+        Assert.assertTrue(regex.matches(split("is a good test")));
+        Assert.assertTrue(regex.matches(split("is is a good test")));
+        Assert.assertTrue(regex.matches(split("is is is test")));
+        Assert.assertFalse(regex.matches(split("test")));
+        Assert.assertFalse(regex.matches(split("a good test")));
 
         // these should all fail
-        Assert.assertFalse(regex.apply(Arrays.asList(("iz a good test")
-                .split(" "))));
-        Assert.assertFalse(regex.apply(Arrays.asList(("this a good test")
-                .split(" "))));
-        Assert.assertFalse(regex.apply(Arrays.asList(("this is a good")
-                .split(" "))));
-        Assert.assertFalse(regex.apply(Arrays
-                .asList(("this is a good good test").split(" "))));
-        Assert.assertFalse(regex.apply(Arrays
-                .asList(("this is a good good good test").split(" "))));
-        Assert.assertFalse(regex.apply(Arrays.asList(("this is A good test")
-                .split(" "))));
+        Assert.assertFalse(regex.matches(split("iz a good test")));
+        Assert.assertFalse(regex.matches(split("this a good test")));
+        Assert.assertFalse(regex.matches(split("this is a good")));
+        Assert.assertFalse(regex.matches(split("this is a good good test")));
+        Assert.assertFalse(regex.matches(split("this is a good good good test")));
+        Assert.assertFalse(regex.matches(split("this is A good test")));
     }
-
+    
     @Test
-    public void testRegex2() {
-
-        String input = "<th.*s> <is> <a> <good>? <test>*";
-        RegularExpression<String> regex = new RegularExpression<String>(input,
-                new ExpressionFactory<String>() {
-                    @Override
-                    public BaseExpression<String> create(final String string) {
-                        return new BaseExpression<String>(string) {
-
-                            @Override
-                            public boolean apply(String token) {
-                                return token.matches(string);
-                            }
-                        };
-                    }
-                });
+    public void testRegexFind() {
+        String input = "^ <th.*s>* <is>+ <a>* <good>? <test> $";
+        RegularExpression<String> regex = 
+                makeRegex(input);
 
         // different forms of "this"
-        Assert.assertTrue(regex.apply(Arrays.asList(new String[] { "this",
-                "is", "a", "a", "a", "good", "test" })));
-        Assert.assertTrue(regex.apply(Arrays.asList(new String[] { "thes",
-                "is", "a", "a", "a", "good", "test" })));
-        Assert.assertTrue(regex.apply(Arrays.asList(new String[] { "ths", "is",
-                "a", "a", "a", "good", "test" })));
+        Assert.assertTrue(regex.apply(split("this is a a a good test")));
+        Assert.assertTrue(regex.apply(split("thes is a a a good test")));
+        Assert.assertTrue(regex.apply(split("ths is a a a good test")));
+        Assert.assertFalse(regex.apply(split("thiz is a a a good test")));
+        Assert.assertFalse(regex.apply(split("theE is a a a good test")));
+        Assert.assertFalse(regex.apply(split("thR is a a a good test")));
 
-        Assert.assertFalse(regex.apply(Arrays.asList(new String[] { "thiz",
-                "is", "a", "a", "a", "good", "test" })));
-        Assert.assertFalse(regex.apply(Arrays.asList(new String[] { "theE",
-                "is", "a", "a", "a", "good", "test" })));
-        Assert.assertFalse(regex.apply(Arrays.asList(new String[] { "thR",
-                "is", "a", "a", "a", "good", "test" })));
+        // different numbers of <a>
+        Assert.assertTrue(regex.apply(split("this is a good test ")));
+        Assert.assertTrue(regex.apply(split("this is a a good test ")));
+        Assert.assertTrue(regex.apply(split("this is a a a good test")));
+        Assert.assertTrue(regex.apply(split("this is a a a a good test")));
+        Assert.assertTrue(regex.apply(split("this is good test")));
 
-        // run out of tokens
-        Assert.assertTrue(regex.apply(Arrays.asList(new String[] { "this",
-                "is", "a", "a", "a", "good" })));
-        Assert.assertTrue(regex.apply(Arrays.asList(new String[] { "thes",
-                "is", "a", "a", "a" })));
-        Assert.assertTrue(regex.apply(Arrays.asList(new String[] { "ths", "is",
-                "a" })));
+        // with good
+        Assert.assertTrue(regex.apply(split("this is a a a a good test")));
+        Assert.assertTrue(regex.apply(split("this is a good test")));
+        Assert.assertTrue(regex.apply(split("this is good test")));
+        
+        // without good
+        Assert.assertTrue(regex.apply(split("this is a a a a test")));
+        Assert.assertTrue(regex.apply(split("this is a test")));
+        Assert.assertTrue(regex.apply(split("this is test")));
+        
+        // different numbers of "this" and "is"
+        // multiple "this"
+        Assert.assertTrue(regex.apply(split("this ths is a good test")));
+        Assert.assertTrue(regex.apply(split("this ths is is a good test")));
+        Assert.assertTrue(regex.apply(split("this ths is is is test")));
+        Assert.assertFalse(regex.apply(split("this ths test")));
+        Assert.assertFalse(regex.apply(split("this ths a good test")));
+        // single "this"
+        Assert.assertTrue(regex.apply(split("this is a good test")));
+        Assert.assertTrue(regex.apply(split("this is is a good test")));
+        Assert.assertTrue(regex.apply(split("this is is is test")));
+        Assert.assertFalse(regex.apply(split("this test")));
+        Assert.assertFalse(regex.apply(split("this a good test")));
+        // no "this"
+        Assert.assertTrue(regex.apply(split("is a good test")));
+        Assert.assertTrue(regex.apply(split("is is a good test")));
+        Assert.assertTrue(regex.apply(split("is is is test")));
+        Assert.assertFalse(regex.apply(split("test")));
+        Assert.assertFalse(regex.apply(split("a good test")));
+
+        // these should all fail
+        Assert.assertFalse(regex.apply(split("iz a good test")));
+        Assert.assertFalse(regex.apply(split("this a good test")));
+        Assert.assertFalse(regex.apply(split("this is a good")));
+        Assert.assertFalse(regex.apply(split("this is a good good test")));
+        Assert.assertFalse(regex.apply(split("this is a good good good test")));
+        Assert.assertFalse(regex.apply(split("this is A good test")));
+    }
+    
+    @Test
+    public void testRegexMatchesNoStar() {
+
+        // <a> is required
+        String input = "<th.*s>* <is>+ <a> <good>? <test>*";
+        RegularExpression<String> regex = makeRegex(input);
+
+        // different forms of "this"
+        Assert.assertFalse(regex.matches(split("this is a a a good test")));
+        Assert.assertFalse(regex.matches(split("thes is a a a good test")));
+        Assert.assertFalse(regex.matches(split("ths is a a a good test")));
+        Assert.assertFalse(regex.matches(split("thiz is a a a good test")));
+        Assert.assertFalse(regex.matches(split("theE is a a a good test")));
+        Assert.assertFalse(regex.matches(split("thR is a a a good test")));
+
+        // different numbers of <a>
+        Assert.assertTrue(regex.matches(split("this is a good test ")));
+        Assert.assertFalse(regex.matches(split("this is a a good test ")));
+        Assert.assertFalse(regex.matches(split("this is a a a good test")));
+        Assert.assertFalse(regex.matches(split("this is a a a a good test")));
+        Assert.assertFalse(regex.matches(split("this is good test")));
+
+        // with good
+        Assert.assertFalse(regex.matches(split("this is a a a a good test")));
+        Assert.assertTrue(regex.matches(split("this is a good test")));
+        Assert.assertFalse(regex.matches(split("this is good test")));
+        
+        // without good
+        Assert.assertFalse(regex.matches(split("this is a a a a test")));
+        Assert.assertTrue(regex.matches(split("this is a test")));
+        Assert.assertFalse(regex.matches(split("this is test")));
+
+        // different numbers of "this" and "is"
+        // multiple "this"
+        Assert.assertTrue(regex.matches(split("this ths is a good test")));
+        Assert.assertTrue(regex.matches(split("this ths is is a good test")));
+        Assert.assertFalse(regex.matches(split("this ths is is is test")));
+        Assert.assertFalse(regex.matches(split("this ths test")));
+        Assert.assertFalse(regex.matches(split("this ths a good test")));
+        // single "this"
+        Assert.assertTrue(regex.matches(split("this is a good test")));
+        Assert.assertTrue(regex.matches(split("this is is a good test")));
+        Assert.assertFalse(regex.matches(split("this is is is test")));
+        Assert.assertFalse(regex.matches(split("this test")));
+        Assert.assertFalse(regex.matches(split("this a good test")));
+        // no "this"
+        Assert.assertTrue(regex.matches(split("is a good test")));
+        Assert.assertTrue(regex.matches(split("is is a good test")));
+        Assert.assertFalse(regex.matches(split("is is is test")));
+        Assert.assertFalse(regex.matches(split("test")));
+        Assert.assertFalse(regex.matches(split("a good test")));
+
+        // these should all fail
+        Assert.assertFalse(regex.matches(split("iz a good test")));
+        Assert.assertFalse(regex.matches(split("this a good test")));
+        Assert.assertTrue(regex.matches(split("this is a good")));
+        Assert.assertFalse(regex.matches(split("this is a good good test")));
+        Assert.assertFalse(regex.matches(split("this is a good good good test")));
+        Assert.assertFalse(regex.matches(split("this is A good test")));
     }
 
     @Test
-    public void testRegex3() {
+    public void testRegexMatchesAllTokens() {
 
         String input = "<th.*s> <is> <a> <good> <test>";
-        RegularExpression<String> regex = new RegularExpression<String>(input,
-                new ExpressionFactory<String>() {
-                    @Override
-                    public BaseExpression<String> create(final String string) {
-                        return new BaseExpression<String>(string) {
+        RegularExpression<String> regex = makeRegex(input);
+        
+        // different forms of "this"
+        Assert.assertTrue(regex.matches(split("this is a good test")));
+        Assert.assertTrue(regex.matches(split("thes is a good test")));
+        Assert.assertTrue(regex.matches(split("ths is a good test")));
+        Assert.assertFalse(regex.matches(split("thiz is a good test")));
+        Assert.assertFalse(regex.matches(split("theE is a good test")));
+        Assert.assertFalse(regex.matches(split("thR is a good test")));
 
-                            @Override
-                            public boolean apply(String token) {
-                                return token.matches(string);
-                            }
-                        };
-                    }
-                });
+        // different numbers of <a>
+        Assert.assertTrue(regex.matches(split("this is a good test ")));
+        Assert.assertFalse(regex.matches(split("this is a a good test ")));
+        Assert.assertFalse(regex.matches(split("this is a a a good test")));
+        Assert.assertFalse(regex.matches(split("this is a a a a good test")));
+        Assert.assertFalse(regex.matches(split("this is good test")));
 
-        // multiple <a> and fail
-        Assert.assertTrue(regex.apply(Arrays.asList(("this is a good test")
-                .split(" "))));
-        Assert.assertFalse(regex.apply(Arrays.asList(("this is good test")
-                .split(" "))));
-        Assert.assertFalse(regex.apply(Arrays.asList(("this is a a good test")
-                .split(" "))));
-        Assert.assertFalse(regex.apply(Arrays
-                .asList(("this is a a a good test").split(" "))));
+        // with good
+        Assert.assertFalse(regex.matches(split("this is a a a a good test")));
+        Assert.assertTrue(regex.matches(split("this is a good test")));
+        Assert.assertFalse(regex.matches(split("this is good test")));
+        
+        // without good
+        Assert.assertFalse(regex.matches(split("this is a a a a test")));
+        Assert.assertFalse(regex.matches(split("this is a test")));
+        Assert.assertFalse(regex.matches(split("this is test")));
+
+        // different numbers of "this" and "is"
+        // multiple "this"
+        Assert.assertFalse(regex.matches(split("this ths is a good test")));
+        Assert.assertFalse(regex.matches(split("this ths is is a good test")));
+        Assert.assertFalse(regex.matches(split("this ths is is is test")));
+        Assert.assertFalse(regex.matches(split("this ths test")));
+        Assert.assertFalse(regex.matches(split("this ths a good test")));
+        // single "this"
+        Assert.assertTrue(regex.matches(split("this is a good test")));
+        Assert.assertFalse(regex.matches(split("this is is a good test")));
+        Assert.assertFalse(regex.matches(split("this is is is test")));
+        Assert.assertFalse(regex.matches(split("this test")));
+        Assert.assertFalse(regex.matches(split("this a good test")));
+        // no "this"
+        Assert.assertFalse(regex.matches(split("is a good test")));
+        Assert.assertFalse(regex.matches(split("is is a good test")));
+        Assert.assertFalse(regex.matches(split("is is is test")));
+        Assert.assertFalse(regex.matches(split("test")));
+        Assert.assertFalse(regex.matches(split("a good test")));
+
+        // these should all fail
+        Assert.assertFalse(regex.matches(split("iz a good test")));
+        Assert.assertFalse(regex.matches(split("this a good test")));
+        Assert.assertFalse(regex.matches(split("this is a good")));
+        Assert.assertFalse(regex.matches(split("this is a good good test")));
+        Assert.assertFalse(regex.matches(split("this is a good good good test")));
+        Assert.assertFalse(regex.matches(split("this is A good test")));
     }
 
     @Test
-    public void testRegex4() {
+    public void testRegexMatchesFirstRequired() {
 
-        String input = "<th.*s> <is> <a>+ <good> <test>";
-        RegularExpression<String> regex = new RegularExpression<String>(input,
-                new ExpressionFactory<String>() {
-                    @Override
-                    public BaseExpression<String> create(final String string) {
-                        return new BaseExpression<String>(string) {
+        String input = "<th.*s> <is>+ <a>* <good>? <test>";
+        RegularExpression<String> regex = makeRegex(input);
 
-                            @Override
-                            public boolean apply(String token) {
-                                return token.matches(string);
-                            }
-                        };
-                    }
-                });
 
-        // multiple <a> and succeed
-        Assert.assertTrue(regex.apply(Arrays.asList(("this is a good test")
-                .split(" "))));
-        Assert.assertTrue(regex.apply(Arrays.asList(("this is a a good test")
-                .split(" "))));
-        Assert.assertTrue(regex.apply(Arrays.asList(("this is a a a good test")
-                .split(" "))));
+        // different forms of "this"
+        Assert.assertTrue(regex.matches(split("this is a a a good test")));
+        Assert.assertTrue(regex.matches(split("thes is a a a good test")));
+        Assert.assertTrue(regex.matches(split("ths is a a a good test")));
+        Assert.assertFalse(regex.matches(split("thiz is a a a good test")));
+        Assert.assertFalse(regex.matches(split("theE is a a a good test")));
+        Assert.assertFalse(regex.matches(split("thR is a a a good test")));
 
-        Assert.assertFalse(regex.apply(Arrays.asList(("this is good test")
-                .split(" "))));
+        // different numbers of <a>
+        Assert.assertTrue(regex.matches(split("this is a good test ")));
+        Assert.assertTrue(regex.matches(split("this is a a good test ")));
+        Assert.assertTrue(regex.matches(split("this is a a a good test")));
+        Assert.assertTrue(regex.matches(split("this is a a a a good test")));
+        Assert.assertTrue(regex.matches(split("this is good test")));
+
+        // with good
+        Assert.assertTrue(regex.matches(split("this is a a a a good test")));
+        Assert.assertTrue(regex.matches(split("this is a good test")));
+        Assert.assertTrue(regex.matches(split("this is good test")));
+        
+        // without good
+        Assert.assertTrue(regex.matches(split("this is a a a a test")));
+        Assert.assertTrue(regex.matches(split("this is a test")));
+        Assert.assertTrue(regex.matches(split("this is test")));
+
+        // different numbers of "this" and "is"
+        // multiple "this"
+        Assert.assertFalse(regex.matches(split("this ths is a good test")));
+        Assert.assertFalse(regex.matches(split("this ths is is a good test")));
+        Assert.assertFalse(regex.matches(split("this ths is is is test")));
+        Assert.assertFalse(regex.matches(split("this ths test")));
+        Assert.assertFalse(regex.matches(split("this ths a good test")));
+        // single "this"
+        Assert.assertTrue(regex.matches(split("this is a good test")));
+        Assert.assertTrue(regex.matches(split("this is is a good test")));
+        Assert.assertTrue(regex.matches(split("this is is is test")));
+        Assert.assertFalse(regex.matches(split("this test")));
+        Assert.assertFalse(regex.matches(split("this a good test")));
+        // no "this"
+        Assert.assertFalse(regex.matches(split("is a good test")));
+        Assert.assertFalse(regex.matches(split("is is a good test")));
+        Assert.assertFalse(regex.matches(split("is is is test")));
+        Assert.assertFalse(regex.matches(split("test")));
+        Assert.assertFalse(regex.matches(split("a good test")));
+
+        // these should all fail
+        Assert.assertFalse(regex.matches(split("iz a good test")));
+        Assert.assertFalse(regex.matches(split("this a good test")));
+        Assert.assertFalse(regex.matches(split("this is a good")));
+        Assert.assertFalse(regex.matches(split("this is a good good test")));
+        Assert.assertFalse(regex.matches(split("this is a good good good test")));
+        Assert.assertFalse(regex.matches(split("this is A good test")));
     }
 
     @Test
@@ -234,7 +360,7 @@ public class RegexTest {
     }
 
     @Test
-    public void testGroupRegex1() {
+    public void testUnnamedGroupRegex() {
         String input = "(<th.*s>* <is>+) (<a>* <good>? <test>) (?:<right>)";
         RegularExpression<String> regex = makeRegex(input);
 
@@ -249,7 +375,7 @@ public class RegexTest {
     }
     
     @Test
-    public void testNamedGroupRegex1() {
+    public void testNamedGroupRegex() {
         String input = "(<this>:<th.*s>* <is>+) (<good>:<a>* <good>? <test>) (?:<right>)";
         RegularExpression<String> regex = makeRegex(input);
 
@@ -265,175 +391,55 @@ public class RegexTest {
 
     @Test
     public void testSimpleAutomata() {
-
         String input = "<this> <is> <a>";
-        RegularExpression<String> regex = new RegularExpression<String>(input,
-                new ExpressionFactory<String>() {
-                    @Override
-                    public BaseExpression<String> create(final String string) {
-                        return new BaseExpression<String>(string) {
-
-                            @Override
-                            public boolean apply(String token) {
-                                return token.matches(string);
-                            }
-                        };
-                    }
-                });
+        RegularExpression<String> regex = makeRegex(input);
 
         FiniteAutomaton.Automaton<String> auto = regex.build(regex.expressions);
 
-        auto.lookingAt(Arrays.asList(("this is a").split(" ")));
-        Assert.assertTrue(auto.apply(Arrays.asList(("this is a").split(" "))));
-    }
-
-    @Test
-    public void testAutomata() {
-
-        String input = "<th.*s>* <is>+ <a>* <good>? <test>";
-        RegularExpression<String> regex = new RegularExpression<String>(input,
-                new ExpressionFactory<String>() {
-                    @Override
-                    public BaseExpression<String> create(final String string) {
-                        return new BaseExpression<String>(string) {
-
-                            @Override
-                            public boolean apply(String token) {
-                                return token.matches(string);
-                            }
-                        };
-                    }
-                });
-
-        FiniteAutomaton.Automaton<String> auto = regex.build(regex.expressions);
-
-        // different forms of "this"
-        Assert.assertTrue(auto.apply(Arrays.asList(new String[] { "this", "is",
-                "a", "a", "a", "good", "test" })));
-        Assert.assertTrue(auto.apply(Arrays.asList(new String[] { "thes", "is",
-                "a", "a", "a", "good", "test" })));
-        Assert.assertTrue(auto.apply(Arrays.asList(new String[] { "ths", "is",
-                "a", "a", "a", "good", "test" })));
-
-        // different numbers of <a>
-        Assert.assertTrue(auto.apply(Arrays.asList(("this is a good test")
-                .split(" "))));
-        Assert.assertTrue(auto.apply(Arrays.asList(("this is a a good test")
-                .split(" "))));
-        Assert.assertTrue(auto.apply(Arrays.asList(("this is a a a good test")
-                .split(" "))));
-        Assert.assertTrue(auto.apply(Arrays
-                .asList(("this is a a a a good test").split(" "))));
-        Assert.assertTrue(auto.apply(Arrays.asList(("this is good test")
-                .split(" "))));
-
-        // god or no good
-        Assert.assertTrue(auto.apply(Arrays
-                .asList(("this is a a a a good test").split(" "))));
-        Assert.assertTrue(auto.apply(Arrays.asList(("this is good test")
-                .split(" "))));
-        Assert.assertTrue(auto.apply(Arrays.asList(("this is a a a a test")
-                .split(" "))));
-        Assert.assertTrue(auto.apply(Arrays.asList(("this is test").split(" "))));
-
-        // different numbers of <this>
-        Assert.assertTrue(auto.apply(Arrays.asList(("this is a good test")
-                .split(" "))));
-        Assert.assertTrue(auto.apply(Arrays.asList(("this is is a good test")
-                .split(" "))));
-        Assert.assertTrue(auto.apply(Arrays.asList(("this is is is test")
-                .split(" "))));
-        Assert.assertFalse(auto.apply(Arrays.asList(("this test").split(" "))));
-        Assert.assertFalse(auto.apply(Arrays.asList(("this a good test")
-                .split(" "))));
-
-        // these should all fail
-        Assert.assertFalse(auto.apply(Arrays.asList(("iz a good test")
-                .split(" "))));
-        Assert.assertFalse(auto.apply(Arrays.asList(("this a good test")
-                .split(" "))));
-        Assert.assertFalse(auto.apply(Arrays.asList(("this is a good")
-                .split(" "))));
-        Assert.assertFalse(auto.apply(Arrays
-                .asList(("this is a good good test").split(" "))));
-        Assert.assertFalse(auto.apply(Arrays
-                .asList(("this is a good good good test").split(" "))));
-        Assert.assertFalse(auto.apply(Arrays.asList(("this is A good test")
-                .split(" "))));
+        auto.lookingAt(split("this is a"));
+        Assert.assertTrue(auto.apply(split(("this is a"))));
     }
 
     @Test
     public void testAutomataOr() {
 
         String input = "(<th.*s>) | (<is>+ <a>*)+ <good>? <test>";
-        RegularExpression<String> regex = new RegularExpression<String>(input,
-                new ExpressionFactory<String>() {
-                    @Override
-                    public BaseExpression<String> create(final String string) {
-                        return new BaseExpression<String>(string) {
-
-                            @Override
-                            public boolean apply(String token) {
-                                return token.matches(string);
-                            }
-                        };
-                    }
-                });
+        RegularExpression<String> regex = makeRegex(input);
 
         FiniteAutomaton.Automaton<String> auto = regex.build(regex.expressions);
 
         // different forms of "this"
-        Assert.assertTrue(auto.apply(Arrays.asList(new String[] { "this",
-                "good", "test" })));
-        Assert.assertTrue(auto.apply(Arrays.asList(new String[] { "is", "a",
-                "a", "a", "good", "test" })));
-        Assert.assertTrue(auto.apply(Arrays.asList(new String[] { "is", "a",
-                "a", "a", "is", "good", "test" })));
-        Assert.assertTrue(auto.apply(Arrays.asList(new String[] { "is", "a",
-                "a", "a", "is", "a", "good", "test" })));
-        Assert.assertFalse(auto.apply(Arrays.asList(new String[] { "a", "is",
-                "a", "a", "a", "is", "good", "test" })));
+        Assert.assertTrue(auto.apply(split("this good test")));
+        Assert.assertTrue(auto.apply(split("is a a a good test")));
+        Assert.assertTrue(auto.apply(split("is a a a is good test")));
+        Assert.assertTrue(auto.apply(split("is a a a is a good test")));
+        Assert.assertFalse(auto.apply(split("a is a a a is good test")));
 
         // different numbers of <a>
-        Assert.assertTrue(auto.apply(Arrays.asList(("is a good test")
-                .split(" "))));
-        Assert.assertTrue(auto.apply(Arrays.asList(("is a a good test")
-                .split(" "))));
-        Assert.assertTrue(auto.apply(Arrays.asList(("is a a a good test")
-                .split(" "))));
-        Assert.assertTrue(auto.apply(Arrays.asList(("is a a a a good test")
-                .split(" "))));
-        Assert.assertTrue(auto.apply(Arrays.asList(("this good test")
-                .split(" "))));
+        Assert.assertTrue(auto.apply(split("is a good test")));
+        Assert.assertTrue(auto.apply(split("is a a good test")));
+        Assert.assertTrue(auto.apply(split("is a a a good test")));
+        Assert.assertTrue(auto.apply(split("is a a a a good test")));
+        Assert.assertTrue(auto.apply(split("this good test")));
 
         // god or no good
-        Assert.assertTrue(auto.apply(Arrays.asList(("is a a a a good test")
-                .split(" "))));
-        Assert.assertTrue(auto.apply(Arrays.asList(("is good test").split(" "))));
-        Assert.assertTrue(auto.apply(Arrays.asList(("is a a a a test")
-                .split(" "))));
-        Assert.assertFalse(auto.apply(Arrays.asList(("test").split(" "))));
-
+        Assert.assertTrue(auto.apply(split("is a a a a good test")));
+        Assert.assertTrue(auto.apply(split("is good test")));
+        Assert.assertTrue(auto.apply(split("is a a a a test")));
+        Assert.assertFalse(auto.apply(split("test")));
         // different numbers of <this>
-        Assert.assertFalse(auto.apply(Arrays.asList(("this a good test")
-                .split(" "))));
+        Assert.assertFalse(auto.apply(split("this a good test")));
 
         // these should all fail
-        Assert.assertFalse(auto.apply(Arrays.asList(("iz a good test")
-                .split(" "))));
-        Assert.assertFalse(auto.apply(Arrays.asList(("this a good test")
-                .split(" "))));
-        Assert.assertFalse(auto.apply(Arrays.asList(("this is a good")
-                .split(" "))));
-        Assert.assertFalse(auto.apply(Arrays
-                .asList(("this is a good good test").split(" "))));
-        Assert.assertFalse(auto.apply(Arrays
-                .asList(("this is a good good good test").split(" "))));
-        Assert.assertFalse(auto.apply(Arrays.asList(("this is A good test")
-                .split(" "))));
+        Assert.assertFalse(auto.apply(split("iz a good test")));
+        Assert.assertFalse(auto.apply(split("this a good test")));
+        Assert.assertFalse(auto.apply(split("this is a good")));
+        Assert.assertFalse(auto.apply(split("this is a good good test")));
+        Assert.assertFalse(auto.apply(split("this is a good good good test")));
+        Assert.assertFalse(auto.apply(split("this is A good test")));
     }
 
-    public RegularExpression<String> makeRegex(String input) {
+    public static RegularExpression<String> makeRegex(String input) {
         return new RegularExpression<String>(input,
                 new ExpressionFactory<String>() {
                     @Override
@@ -447,5 +453,9 @@ public class RegexTest {
                         };
                     }
                 });
+    }
+    
+    public static List<String> split(String input) {
+        return Arrays.asList(input.split(" "));
     }
 }
