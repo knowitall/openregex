@@ -75,6 +75,16 @@ public class RegularExpression<E> implements Predicate<List<E>> {
             return false;
         }
     }
+    
+    /***
+     * Apply the expression against a list of tokens.
+     * 
+     * @return true iff the expression matches all of the tokens.
+     */
+    public boolean matches(List<E> tokens) {
+        Match<E> match = this.lookingAt(tokens, 0);
+        return match != null && match.length() == tokens.size();
+    }
 
     /***
      * Find the first match of the regular expression against tokens. This
