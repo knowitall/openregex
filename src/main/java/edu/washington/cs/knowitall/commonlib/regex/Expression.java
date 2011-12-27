@@ -310,7 +310,7 @@ public interface Expression<E> extends Predicate<E> {
      * @param <E>
      */
     static abstract class BaseExpression<E> implements Expression<E> {
-        private final String source;
+        public final String source;
         
         public BaseExpression(String source) {
             this.source = source;
