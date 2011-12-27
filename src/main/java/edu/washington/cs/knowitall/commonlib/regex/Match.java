@@ -87,6 +87,13 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
     public abstract List<E> tokens();
     
     /***
+     * @return the number of tokens in the match.
+     */
+    public int length() {
+        return this.tokens().size();
+    }
+    
+    /***
      * The range the match spans.
      * @return
      */
