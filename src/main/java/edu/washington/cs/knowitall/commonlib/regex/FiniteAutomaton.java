@@ -3,12 +3,12 @@ package edu.washington.cs.knowitall.commonlib.regex;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
-import edu.washington.cs.knowitall.commonlib.mutable.MutableInteger;
 import edu.washington.cs.knowitall.commonlib.regex.Expression.AssertionExpression;
 import edu.washington.cs.knowitall.commonlib.regex.Expression.MatchingGroup;
 
@@ -65,7 +65,7 @@ public class FiniteAutomaton {
             }
             
             Match.IntermediateMatch<E> match = new Match.IntermediateMatch<E>();
-            buildMatch(sublist.iterator(), null, new MutableInteger(startIndex), this.start, Lists.reverse(edges).iterator(), match);
+            buildMatch(sublist.iterator(), null, new AtomicInteger(startIndex), this.start, Lists.reverse(edges).iterator(), match);
             return new Match.FinalMatch<E>(match);
         }
         
@@ -80,7 +80,7 @@ public class FiniteAutomaton {
          * @param match the solution.
          * @return
          */
-        private State<E> buildMatch(Iterator<E> tokenIterator, Expression<E> expression, MutableInteger index, State<E> state, Iterator<AbstractEdge<E>> edgeIterator, Match.IntermediateMatch<E> match) {
+        private State<E> buildMatch(Iterator<E> tokenIterator, Expression<E> expression, AtomicInteger index, State<E> state, Iterator<AbstractEdge<E>> edgeIterator, Match.IntermediateMatch<E> match) {
             Match.IntermediateMatch<E> newMatch = new Match.IntermediateMatch<E>();
             
             while (edgeIterator.hasNext() && !((state instanceof EndState<?>) && ((EndState<E>)state).expression == expression)) {
@@ -90,30 +90,39 @@ public class FiniteAutomaton {
                 if (edge instanceof Edge<?> && !(((Edge<?>) edge).expression instanceof AssertionExpression<?>)) {
                     // consume a token, this is the base case
                     E token = tokenIterator.next();
-                    newMatch.add(((Edge<E>)edge).expression, token, index.value());
-                    index.increment();
+                    newMatch.add(((Edge<E>)edge).expression, token, index.getAndIncrement());
                     
                     state = edge.dest;
                 }
                 else if (state instanceof StartState<?>) {
-                    state = buildMatch(tokenIterator, ((StartState<E>)state).expression, index, edge.dest, edgeIterator, newMatch);
+                    // recurse on StartState so we have a group for that match
+                    Expression<E> expr = ((StartState<E>)state).expression;
+                    state = buildMatch(tokenIterator, expr, index, edge.dest, edgeIterator, newMatch);
+                    assert(state instanceof EndState<?> && ((EndState<?>)state).expression == expr);
                 }
                 else {
+                    assert(edge instanceof Epsilon<?>);
                     state = edge.dest;
                 }
             }
             
+            // add the sub match group
             if (expression != null && (!newMatch.isEmpty() || expression instanceof MatchingGroup<?>)) {
+                // create a wrapper for the expressions it matched
                 Match.Group<E> pair = new Match.Group<E>(expression);
                 for (Match.Group<E> p : newMatch) {
                     if (p.expr instanceof Expression.BaseExpression<?>) {
                         pair.addTokens(p);
                     }
                 }
+                
+                // add it
                 match.add(pair);
             }
+            
+            // add the contents of the sub match group
             match.addAll(newMatch);
- 
+
             return state;
         }
         
@@ -424,6 +433,11 @@ public class FiniteAutomaton {
             super(dest);
             this.expression = base;
         }
+        
+        @Override
+        public String toString() {
+            return "(" + this.expression.toString() + ") -> " + this.dest.toString();
+        }
 
         @Override
         public boolean apply(E entity) {
@@ -445,6 +459,11 @@ public class FiniteAutomaton {
     public static class Epsilon<E> extends AbstractEdge<E> {
         public Epsilon(State<E> dest) {
             super(dest);
+        }
+        
+        @Override
+        public String toString() {
+            return "(epsilon) -> " + dest.toString();
         }
 
         @Override
