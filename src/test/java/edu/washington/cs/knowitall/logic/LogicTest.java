@@ -1,9 +1,9 @@
-package edu.washington.cs.knowitall.commonlib.logic;
+package edu.washington.cs.knowitall.logic;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import edu.washington.cs.knowitall.commonlib.logic.Tok.Arg;
+import edu.washington.cs.knowitall.logic.Tok.Arg;
 
 public class LogicTest {
     @Test

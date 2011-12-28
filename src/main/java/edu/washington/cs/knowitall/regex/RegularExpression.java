@@ -1,4 +1,4 @@
-package edu.washington.cs.knowitall.commonlib.regex;
+package edu.washington.cs.knowitall.regex;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,11 +10,11 @@ import java.util.regex.Pattern;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 
-import edu.washington.cs.knowitall.commonlib.regex.Expression.BaseExpression;
-import edu.washington.cs.knowitall.commonlib.regex.Expression.EndAssertion;
-import edu.washington.cs.knowitall.commonlib.regex.Expression.StartAssertion;
-import edu.washington.cs.knowitall.commonlib.regex.FiniteAutomaton.Automaton;
-import edu.washington.cs.knowitall.commonlib.regex.RegexException.TokenizeRegexException;
+import edu.washington.cs.knowitall.regex.Expression.BaseExpression;
+import edu.washington.cs.knowitall.regex.Expression.EndAssertion;
+import edu.washington.cs.knowitall.regex.Expression.StartAssertion;
+import edu.washington.cs.knowitall.regex.FiniteAutomaton.Automaton;
+import edu.washington.cs.knowitall.regex.RegexException.TokenizeRegexException;
 
 public class RegularExpression<E> implements Predicate<List<E>> {
     public final List<Expression<E>> expressions;

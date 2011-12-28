@@ -1,4 +1,4 @@
-package edu.washington.cs.knowitall.commonlib.regex;
+package edu.washington.cs.knowitall.regex;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -7,8 +7,8 @@ import java.util.List;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 
-import edu.washington.cs.knowitall.commonlib.regex.FiniteAutomaton.Automaton;
-import edu.washington.cs.knowitall.commonlib.regex.FiniteAutomaton.State;
+import edu.washington.cs.knowitall.regex.FiniteAutomaton.Automaton;
+import edu.washington.cs.knowitall.regex.FiniteAutomaton.State;
 
 public interface Expression<E> extends Predicate<E> {
     

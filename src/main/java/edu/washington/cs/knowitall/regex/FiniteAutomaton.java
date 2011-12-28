@@ -1,4 +1,4 @@
-package edu.washington.cs.knowitall.commonlib.regex;
+package edu.washington.cs.knowitall.regex;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -9,8 +9,8 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
-import edu.washington.cs.knowitall.commonlib.regex.Expression.AssertionExpression;
-import edu.washington.cs.knowitall.commonlib.regex.Expression.MatchingGroup;
+import edu.washington.cs.knowitall.regex.Expression.AssertionExpression;
+import edu.washington.cs.knowitall.regex.Expression.MatchingGroup;
 
 /***
  * A finite automaton implementation.  There is support for epsilon

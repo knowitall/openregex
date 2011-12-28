@@ -1,4 +1,4 @@
-package edu.washington.cs.knowitall.commonlib.regex;
+package edu.washington.cs.knowitall.regex;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,7 +9,7 @@ import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
-import edu.washington.cs.knowitall.commonlib.regex.Expression.BaseExpression;
+import edu.washington.cs.knowitall.regex.Expression.BaseExpression;
 
 /***
  * A class to represent a match. Each part of the regular expression is matched

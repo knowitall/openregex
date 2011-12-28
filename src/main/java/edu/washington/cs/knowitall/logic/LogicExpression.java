@@ -1,4 +1,4 @@
-package edu.washington.cs.knowitall.commonlib.logic;
+package edu.washington.cs.knowitall.logic;
 
 import java.util.ArrayList;
 import java.util.EmptyStackException;
@@ -9,10 +9,10 @@ import java.util.Stack;
 
 import com.google.common.base.Predicate;
 
-import edu.washington.cs.knowitall.commonlib.logic.LogicException.ApplyLogicException;
-import edu.washington.cs.knowitall.commonlib.logic.LogicException.CompileLogicException;
-import edu.washington.cs.knowitall.commonlib.logic.LogicException.TokenizeLogicException;
-import edu.washington.cs.knowitall.commonlib.logic.Tok.Arg;
+import edu.washington.cs.knowitall.logic.LogicException.ApplyLogicException;
+import edu.washington.cs.knowitall.logic.LogicException.CompileLogicException;
+import edu.washington.cs.knowitall.logic.LogicException.TokenizeLogicException;
+import edu.washington.cs.knowitall.logic.Tok.Arg;
 
 public class LogicExpression<E> implements Predicate<E> {
     private final Tok.Apply<E> expression;

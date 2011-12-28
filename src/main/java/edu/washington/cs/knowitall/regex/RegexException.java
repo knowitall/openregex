@@ -1,4 +1,4 @@
-package edu.washington.cs.knowitall.commonlib.regex;
+package edu.washington.cs.knowitall.regex;
 
 public class RegexException extends RuntimeException {
     private static final long serialVersionUID = -3534531866062810681L;

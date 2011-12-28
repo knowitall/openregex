@@ -1,4 +1,4 @@
-package edu.washington.cs.knowitall.commonlib.logic;
+package edu.washington.cs.knowitall.logic;
 
 
 public class LogicException extends RuntimeException {

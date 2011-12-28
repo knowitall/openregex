@@ -1,4 +1,4 @@
-package edu.washington.cs.knowitall.commonlib.regex;
+package edu.washington.cs.knowitall.regex;
 
 import java.util.Arrays;
 import java.util.List;
@@ -6,7 +6,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import edu.washington.cs.knowitall.commonlib.regex.Expression.BaseExpression;
+import edu.washington.cs.knowitall.regex.Expression.BaseExpression;
 
 public class RegexTest {
     @Test
