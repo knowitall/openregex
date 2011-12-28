@@ -23,15 +23,15 @@ import edu.washington.cs.knowitall.commonlib.regex.Expression.BaseExpression;
 public abstract class Match<E> extends ArrayList<Match.Group<E>> {
     private static final long serialVersionUID = 1L;
     
-    public Match() {
+    protected Match() {
         super();
     }
 
-    public Match(int size) {
+    protected Match(int size) {
         super(size);
     }
 
-    public Match(Match<E> match) {
+    protected Match(Match<E> match) {
         for (Group<E> pair : match) {
             this.add(new Group<E>(pair.expr, pair.tokens));
         }
@@ -125,14 +125,14 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
      *
      * @param <E>
      */
-    protected static class FinalMatch<E> extends Match<E> {
+    protected final static class FinalMatch<E> extends Match<E> {
         private static final long serialVersionUID = 1L;
 
         private final int startIndex;
         private final List<E> tokens;
         private final List<Group<E>> groups;
  
-        public FinalMatch(Match<E> m) {
+        protected FinalMatch(Match<E> m) {
             super(m);
             this.startIndex = m.startIndex();
             this.tokens = Collections.unmodifiableList(m.tokens());
@@ -165,8 +165,10 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
      *
      * @param <E>
      */
-    protected static class IntermediateMatch<E> extends Match<E> {
+    protected final static class IntermediateMatch<E> extends Match<E> {
         private static final long serialVersionUID = 1L;
+        
+        protected IntermediateMatch() {}
 
         @Override
         public List<E> tokens() {
