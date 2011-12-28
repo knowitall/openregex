@@ -352,11 +352,10 @@ public class RegexTest {
                 });
 
         Assert.assertTrue(regex
-                .lookingAt(Arrays.asList(("a a a a b b").split(" "))).range()
-                .getLength() == 6);
+                .lookingAt(Arrays.asList(("a a a a b b").split(" "))).length() == 6);
         Assert.assertTrue(regex
                 .lookingAt(Arrays.asList(("a a a a a b b b b").split(" ")))
-                .range().getLength() == 9);
+                .length() == 9);
     }
 
     @Test

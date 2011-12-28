@@ -144,7 +144,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
     
     public Match<E> match(List<E> tokens) {
         Match<E> match = this.lookingAt(tokens);
-        if (match != null && match.range().getEnd() == tokens.size()) {
+        if (match != null && match.endIndex() == tokens.size()) {
             return match;
         }
         else {

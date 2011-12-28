@@ -9,7 +9,6 @@ import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
-import edu.washington.cs.knowitall.commonlib.Range;
 import edu.washington.cs.knowitall.commonlib.regex.Expression.BaseExpression;
 
 /***
@@ -91,14 +90,6 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
      */
     public int length() {
         return this.tokens().size();
-    }
-    
-    /***
-     * The range the match spans.
-     * @return
-     */
-    public Range range() {
-        return Range.fromInterval(this.startIndex(), this.endIndex());
     }
     
     /***
@@ -274,18 +265,6 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
                             return token.entity;
                         }
                     });
-        }
-
-        /***
-         * @return the range of the tokens matched.
-         */
-        public Range range() {
-            Range range = Range.EMPTY;
-            for (Token<E> token : this.tokens) {
-                range = range.join(new Range(token.index));
-            }
-
-            return range;
         }
 
         /***
