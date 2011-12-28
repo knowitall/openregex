@@ -10,7 +10,6 @@ import java.util.regex.Pattern;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 
-import edu.washington.cs.knowitall.commonlib.StringUtils;
 import edu.washington.cs.knowitall.commonlib.regex.Expression.BaseExpression;
 import edu.washington.cs.knowitall.commonlib.regex.Expression.EndAssertion;
 import edu.washington.cs.knowitall.commonlib.regex.Expression.StartAssertion;
@@ -213,7 +212,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
             char c = string.charAt(start);
             if (c == '(' || c == '<' || c == '[' || c == '$' || c == '^') {
                 if (string.charAt(start) == '(') {
-                    int end = StringUtils.indexOfClose(string, start, '(', ')');
+                    int end = indexOfClose(string, start, '(', ')');
                     if (end == -1) {
                         throw new TokenizeRegexException("Unclosed parenthesis at: " + start);
                     }
@@ -246,10 +245,10 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                 else if (c == '<' || c == '[') {
                     int end;
                     if (c == '<') {
-                        end = StringUtils.indexOfClose(string, start, '<', '>');
+                        end = indexOfClose(string, start, '<', '>');
                     }
                     else if (c == '[' ){
-                        end = StringUtils.indexOfClose(string, start, '[', ']');
+                        end = indexOfClose(string, start, '[', ']');
                     }
                     else {
                         throw new IllegalStateException();
@@ -346,7 +345,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
      */
     public List<String> split(String expression) {
         final Pattern tokenPattern = Pattern.compile("\\(?<.*?>\\)?[*?+]?");
-        return StringUtils.splitInto(expression, tokenPattern);
+        return splitInto(expression, tokenPattern);
     }
     
     /***
@@ -381,5 +380,59 @@ public class RegularExpression<E> implements Predicate<List<E>> {
             
             System.out.println(regex.apply(Arrays.asList(line.split("\\s+"))));
         }
+    }
+
+    private static List<String> splitInto(String string, Pattern pattern) {
+        Matcher matcher = pattern.matcher(string);
+        
+        List<String> parts = new ArrayList<String>();
+        
+        int i = 0;
+        while (matcher.find(i)) {
+            if (i < matcher.start()) {
+                throw new IllegalArgumentException("Could not split string into specified pattern.  Found matches '" + Joiner.on(", ").join(parts) + "' and then '" + string.charAt(i) + "' found between matches.");
+            }
+            
+            if (matcher.groupCount() > 0) {
+                parts.add(matcher.group(1));
+            }
+            else {
+                parts.add(matcher.group(0));
+            }
+            
+            i = matcher.end();
+        }
+        
+        if (i != string.length()) {
+            throw new IllegalArgumentException("Pattern does not extend to end of string: " + i + "/" + string.length());
+        }
+        
+        return parts;
+    }
+
+    private static int indexOfClose(String string, int start, char open, char close) {
+        start--;
+        
+        int count = 0;
+        do {
+            start++;
+            
+            // we hit the end
+            if (start >= string.length()) {
+                return -1;
+            }
+            
+            char c = string.charAt(start);
+            
+            // we hit an open/close
+            if (c == open) {
+                count++;
+            } else if (c == close) {
+                count--;
+            }
+            
+        } while (count > 0); 
+        
+        return start;
     }
 }
