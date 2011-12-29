@@ -110,7 +110,7 @@ public class FiniteAutomaton {
             if (expression != null && (!newMatch.isEmpty() || expression instanceof MatchingGroup<?>)) {
                 // create a wrapper for the expressions it matched
                 Match.Group<E> pair = new Match.Group<E>(expression);
-                for (Match.Group<E> p : newMatch) {
+                for (Match.Group<E> p : newMatch.pairs()) {
                     if (p.expr instanceof Expression.BaseExpression<?>) {
                         pair.addTokens(p);
                     }
@@ -121,7 +121,7 @@ public class FiniteAutomaton {
             }
             
             // add the contents of the sub match group
-            match.addAll(newMatch);
+            match.addAll(newMatch.pairs());
 
             return state;
         }

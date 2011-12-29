@@ -2,6 +2,7 @@ package edu.washington.cs.knowitall.regex;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
 
 import com.google.common.base.Function;
@@ -13,32 +14,40 @@ import edu.washington.cs.knowitall.regex.Expression.BaseExpression;
 
 /***
  * A class to represent a match. Each part of the regular expression is matched
- * to a sequence of tokens.
+ * to a sequence of tokens.   A match also stores information about the range
+ * of tokens matched and the matching groups in the match.
  * 
  * @author michael
  * 
  * @param <E>
  */
-public abstract class Match<E> extends ArrayList<Match.Group<E>> {
+public abstract class Match<E> {
     private static final long serialVersionUID = 1L;
+
+    protected List<Match.Group<E>> pairs;
     
     protected Match() {
-        super();
-    }
-
-    protected Match(int size) {
-        super(size);
+      pairs = new ArrayList<Match.Group<E>>();
     }
 
     protected Match(Match<E> match) {
-        for (Group<E> pair : match) {
+        this();
+        for (Group<E> pair : match.pairs) {
             this.add(new Group<E>(pair.expr, pair.tokens));
         }
     }
 
-    @Override
     public boolean add(Group<E> pair) {
-        return super.add(pair);
+        return this.pairs.add(pair);
+    }
+
+    public boolean addAll(Collection<Group<E>> pairs) {
+        boolean result = true;
+        for (Group<E> pair : pairs) {
+            result &= this.add(pair);
+        }
+
+        return result;
     }
 
     /***
@@ -52,17 +61,23 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
         return this.add(new Group<E>(expr, token, pos));
     }
 
+    /***
+     * True iff this match contains no pairs.  This should only happen on an
+     * IntermediateMatch that has not had any pairs added to it yet.
+     */
+    public boolean isEmpty() {
+        return this.pairs.isEmpty();
+    }
+
     @Override
     public String toString() {
-        return "["
-                + Joiner.on(", ").join(
-                        Lists.transform(this, Functions.toStringFunction()))
-                + "]";
+        return "[" + Joiner.on(", ").join(
+          Lists.transform(this.pairs, Functions.toStringFunction())) + "]";
     }
 
     public String toMultilineString() {
-        return Joiner.on("\n").join(
-                Lists.transform(this, Functions.toStringFunction()));
+        return Joiner.on("\n").join(Lists.transform(this.pairs, 
+          Functions.toStringFunction()));
     }
     
     /***
@@ -74,6 +89,17 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
      * @return the index of the last token matched.
      */
     public abstract int endIndex();
+
+    /***
+     * Pairs differ from the matching groups in that each regular expression
+     * element has a pair to associate the element with the text matched.
+     * For example, 'a*' might be associated with 'a a a a'.
+     *
+     * @return all pairs in this match.
+     */
+    public List<Group<E>> pairs() {
+        return Collections.unmodifiableList(this.pairs);
+    }
     
     /***
      * @return all matching groups (named and unnamed).
@@ -159,12 +185,14 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
     protected final static class IntermediateMatch<E> extends Match<E> {
         private static final long serialVersionUID = 1L;
         
-        protected IntermediateMatch() {}
+        protected IntermediateMatch() {
+            super();
+        }
 
         @Override
         public List<E> tokens() {
             List<E> tokens = new ArrayList<E>();
-            for (Match.Group<E> pair : this) {
+            for (Match.Group<E> pair : this.pairs) {
                 if (pair.expr instanceof BaseExpression<?>) {
                     tokens.addAll(pair.tokens());
                 }
@@ -176,7 +204,7 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
         @Override
         public List<Group<E>> groups() {
             List<Group<E>> groups = new ArrayList<Group<E>>();
-            for (Group<E> pair : this) {
+            for (Group<E> pair : this.pairs) {
                 if (pair.expr instanceof Expression.MatchingGroup<?> 
                 && !(pair.expr instanceof Expression.NonMatchingGroup<?>)) {
                     groups.add(pair);
@@ -188,7 +216,7 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
 
         @Override
         public int startIndex() {
-            for (Match.Group<E> pair : this) {
+            for (Match.Group<E> pair : this.pairs) {
                 if (pair.expr instanceof Expression.BaseExpression<?>) {
                     return pair.tokens.get(0).index;
                 }
@@ -199,7 +227,7 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
         
         @Override
         public int endIndex() {
-            for (Match.Group<E> pair : Lists.reverse(this)) {
+            for (Match.Group<E> pair : Lists.reverse(this.pairs)) {
                 if (pair.expr instanceof Expression.BaseExpression<?>) {
                     return pair.tokens.get(0).index;
                 }
