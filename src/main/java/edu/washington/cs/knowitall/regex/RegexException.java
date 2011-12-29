@@ -15,14 +15,14 @@ public class RegexException extends RuntimeException {
         super(message);
     }
     
-    public static class TokenizeRegexException extends RegexException {
+    public static class TokenizationRegexException extends RegexException {
         private static final long serialVersionUID = 7064825496455884721L;
 
-        public TokenizeRegexException(String message, Exception e) {
+        public TokenizationRegexException(String message, Exception e) {
             super(message, e);
         }
         
-        public TokenizeRegexException(String message) {
+        public TokenizationRegexException(String message) {
             super(message);
         }
     }

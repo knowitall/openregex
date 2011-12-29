@@ -15,7 +15,7 @@ import edu.washington.cs.knowitall.regex.Expression.BaseExpression;
 import edu.washington.cs.knowitall.regex.Expression.EndAssertion;
 import edu.washington.cs.knowitall.regex.Expression.StartAssertion;
 import edu.washington.cs.knowitall.regex.FiniteAutomaton.Automaton;
-import edu.washington.cs.knowitall.regex.RegexException.TokenizeRegexException;
+import edu.washington.cs.knowitall.regex.RegexException.TokenizationRegexException;
 
 /**
  * A regular expression engine that operates over sequences of user-specified
@@ -223,13 +223,15 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                 continue;
             }
             
-            // tokenize group
             char c = string.charAt(start);
+            // group, assertion, or token
             if (c == '(' || c == '<' || c == '[' || c == '$' || c == '^') {
+                // group
                 if (string.charAt(start) == '(') {
                     int end = indexOfClose(string, start, '(', ')');
                     if (end == -1) {
-                        throw new TokenizeRegexException("Unclosed parenthesis at: " + start);
+                        throw new TokenizationRegexException("unclosed parenthesis: " + start 
+                                + ":\"" + string.substring(start) + ")\"");
                     }
                     
                     String group = string.substring(start + 1, end);
@@ -238,6 +240,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                     final Pattern namedPattern = Pattern.compile("<(\\w*)>:(.*)");
                     final Pattern unnamedPattern = Pattern.compile("\\?:(.*)");
                     
+                    // named group (matching)
                     if ((matcher = namedPattern.matcher(group)).matches()) {
                         String groupName = matcher.group(1);
                         group = matcher.group(2);
@@ -245,18 +248,22 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                                 factory);
                         expressions.add(new Expression.NamedGroup<E>(groupName, groupExpressions));
                     }
+                    // unnamed group
                     else if ((matcher = unnamedPattern.matcher(group)).matches()) {
                         group = matcher.group(1);
                         List<Expression<E>> groupExpressions = this.tokenize(group,
                                 factory);
                         expressions.add(new Expression.NonMatchingGroup<E>(groupExpressions));
                     }
+                    // group (matching)
                     else {
                         List<Expression<E>> groupExpressions = this.tokenize(group,
                                 factory);
                         expressions.add(new Expression.MatchingGroup<E>(groupExpressions));
                     }
                 }
+
+                // token
                 else if (c == '<' || c == '[') {
                     int end;
                     if (c == '<') {
@@ -271,8 +278,9 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                     
                     // make sure we found the end
                     if (end == -1) {
-                        throw new TokenizeRegexException(
-                                "Error parsing group name.  Non-matching brackets (<>) or ([]).");
+                        throw new TokenizationRegexException(
+                                "bad token. Non-matching brackets (<> or []): " + start
+                                + ":\"" + string.substring(start) + "\"");
                     }
                         
                     String token = string.substring(start + 1, end);
@@ -283,13 +291,17 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                         start = end + 1;
                     }
                     catch (Exception e) {
-                        throw new TokenizeRegexException("Error parsing token: " + token, e);
+                        throw new TokenizationRegexException("error parsing token: " + token, e);
                     }
                 }
+
+                // assertion (^)
                 else if (c == '^') {
                     expressions.add(new StartAssertion<E>());
                     start += 1;
                 }
+
+                // assertion ($)
                 else if (c == '$') {
                     expressions.add(new EndAssertion<E>());
                     start += 1;
@@ -309,10 +321,11 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                         expressions.add(new Expression.Or<E>(expr1, expr2));
                     }
                     catch (Exception e) {
-                        throw new TokenizeRegexException("Error parsing OR (|) operator.", e);
+                        throw new TokenizationRegexException("error parsing OR (|) operator.", e);
                     }
                 }
             }
+            // unary operator
             else if ((matcher = unaryPattern.matcher(string))
                      .region(start, string.length()).lookingAt()) {
                 char operator = matcher.group(0).charAt(0);
@@ -337,6 +350,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                 
                 start = matcher.end();
             }
+            // binary operator (alternation)
             else if ((matcher = binaryPattern.matcher(string))
                      .region(start, string.length()).lookingAt()) {
                 tokens.add(matcher.group(0));
@@ -344,13 +358,13 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                 start = matcher.end();
             }
             else {
-                throw new IllegalArgumentException("No token found: "
+                throw new TokenizationRegexException("unknown symbol: "
                         + string.substring(start));
             }
         }
         
         if (stack == '|') {
-            throw new IllegalStateException("OR remains on the stack.");
+            throw new TokenizationRegexException("OR remains on the stack.");
         }
 
         return expressions;
