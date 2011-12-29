@@ -6,7 +6,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class RegularExpressionAssertionSpec extends Specification {
+class RegularExpressionAssertionTest extends Specification {
   val regexTokens = List("^", "<is>", "<a>", "$")
   val matchTokens = List("this", "is", "a", "test")
 

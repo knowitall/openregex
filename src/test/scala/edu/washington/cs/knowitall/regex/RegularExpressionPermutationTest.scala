@@ -7,7 +7,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.immutable.SortedSet
 
 @RunWith(classOf[JUnitRunner])
-class RegularExpressionPermutationSpec extends Specification {
+class RegularExpressionPermutationTest extends Specification {
   val tokens = List("<this>+", "<is>*", "<a>?", "<test>")
   tokens.permutations.foreach { permutation =>
     permutation.mkString("'", " ", "'") should {

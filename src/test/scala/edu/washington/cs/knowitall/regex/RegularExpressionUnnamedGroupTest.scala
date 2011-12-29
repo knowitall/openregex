@@ -6,7 +6,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class RegularExpressionSpec extends Specification {
+class RegularExpressionTest extends Specification {
   val regex = RegularExpressions.word("<this> <is> (((?:(?: <a> <very>+) | <an>) <amazing>? <new>) | (?: <a> <many>* <centuries> <old>)) <test>")
       
   regex.toString should {

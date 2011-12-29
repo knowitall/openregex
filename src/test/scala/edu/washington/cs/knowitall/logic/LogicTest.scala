@@ -7,7 +7,7 @@ import org.specs2.runner.JUnitRunner
 import edu.washington.cs.knowitall.logic.Tok.Arg;
 
 @RunWith(classOf[JUnitRunner])
-class LogicSpec extends Specification {
+class LogicTest extends Specification {
   "order of operations" should {
     "infer the correct parenthesis" in {
       logic("false & false & false").toString() must_== "(false & (false & false))"
@@ -69,8 +69,8 @@ class LogicSpec extends Specification {
   }
 
   def expression(expr: String, varargs: Boolean*) =
-    (expr /: varargs.zipWithIndex) { case (arg, i) =>
-      val v = 'a' + i.asInstanceOf[Char];
+    (expr /: varargs.zipWithIndex) { case (expr, (arg, i)) =>
+      val v = ('a' + i).toChar;
       expr.replace(v.toString(), arg.toString);
     }
     
