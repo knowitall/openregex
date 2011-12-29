@@ -266,6 +266,14 @@ public abstract class Match<E> extends ArrayList<Match.Group<E>> {
                         }
                     });
         }
+        
+        /***
+         * A string representation of the group.
+         * This is a lighter-weight representation than toString.
+         */
+        public String text() {
+            return Joiner.on(" ").join(this.tokens());
+        }
 
         /***
          * @return the number of tokens matched.
