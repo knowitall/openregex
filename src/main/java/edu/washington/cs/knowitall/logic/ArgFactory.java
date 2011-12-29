@@ -2,11 +2,12 @@ package edu.washington.cs.knowitall.logic;
 
 import com.google.common.base.Function;
 
-/***
+/**
  * An abstract factory class that converts the string representation of
  * an argument into a token.  This token uses the supplied delegate to
  * evaluate the expression against an entity into a boolean.
- * @author schmmd
+ * 
+ * @author Michael Schmitz <schmmd@cs.washington.edu>
  *
  * @param <E>
  */

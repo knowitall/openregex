@@ -1,6 +1,9 @@
 package edu.washington.cs.knowitall.logic;
 
-
+/**
+ *
+ * @author Michael Schmitz <schmmd@cs.washington.edu>
+ */
 public class LogicException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
@@ -8,10 +11,8 @@ public class LogicException extends RuntimeException {
         super(message);
     }
 
-    /***
+    /**
      * Exception while applying an expression to an object.
-     * @author schmmd
-     *
      */
     public static class ApplyLogicException extends LogicException {
         private static final long serialVersionUID = 1L;
@@ -21,10 +22,8 @@ public class LogicException extends RuntimeException {
         }
     }
 
-    /***
+    /**
      * Exception while converting the tokens into a valid expression.
-     * @author schmmd
-     *
      */
     public static class CompileLogicException extends LogicException {
         private static final long serialVersionUID = 1L;
@@ -34,10 +33,8 @@ public class LogicException extends RuntimeException {
         }
     }
 
-    /***
+    /**
      * Exception while tokenizing the logic expression string.
-     * @author schmmd
-     *
      */
     public static class TokenizeLogicException extends LogicException {
         private static final long serialVersionUID = 1L;

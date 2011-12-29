@@ -2,7 +2,12 @@ package edu.washington.cs.knowitall.logic;
 
 import com.google.common.base.Predicate;
 
-public class Tok<E> {
+/**
+ * Superclass for expressions in a Logic Expression.
+ *
+ * @author Michael Schmitz <schmmd@cs.washington.edu>
+ */
+public abstract class Tok<E> {
     public static abstract class Apply<E> extends Tok<E> {
         public abstract boolean apply(E entity);
     }

@@ -12,12 +12,12 @@ import com.google.common.collect.Lists;
 
 import edu.washington.cs.knowitall.regex.Expression.BaseExpression;
 
-/***
+/**
  * A class to represent a match. Each part of the regular expression is matched
  * to a sequence of tokens.   A match also stores information about the range
  * of tokens matched and the matching groups in the match.
  * 
- * @author michael
+ * @author Michael Schmitz <schmmd@cs.washington.edu>
  * 
  * @param <E>
  */
@@ -50,7 +50,7 @@ public abstract class Match<E> {
         return result;
     }
 
-    /***
+    /**
      * Convenience method for add(new Group<E>(expr, token, pos)).
      * @param expr
      * @param token
@@ -61,7 +61,7 @@ public abstract class Match<E> {
         return this.add(new Group<E>(expr, token, pos));
     }
 
-    /***
+    /**
      * True iff this match contains no pairs.  This should only happen on an
      * IntermediateMatch that has not had any pairs added to it yet.
      */
@@ -80,17 +80,17 @@ public abstract class Match<E> {
           Functions.toStringFunction()));
     }
     
-    /***
+    /**
      * @return the index of the first token matched.
      */
     public abstract int startIndex();
     
-    /***
+    /**
      * @return the index of the last token matched.
      */
     public abstract int endIndex();
 
-    /***
+    /**
      * Pairs differ from the matching groups in that each regular expression
      * element has a pair to associate the element with the text matched.
      * For example, 'a*' might be associated with 'a a a a'.
@@ -101,24 +101,24 @@ public abstract class Match<E> {
         return Collections.unmodifiableList(this.pairs);
     }
     
-    /***
+    /**
      * @return all matching groups (named and unnamed).
      */
     public abstract List<Group<E>> groups();
     
-    /***
+    /**
      * @return all matched tokens.
      */
     public abstract List<E> tokens();
     
-    /***
+    /**
      * @return the number of tokens in the match.
      */
     public int length() {
         return this.tokens().size();
     }
     
-    /***
+    /**
      * Retrieve a group by name.
      * @param name the name of the group to retrieve.
      * @return the associated group.
@@ -136,9 +136,9 @@ public abstract class Match<E> {
         return null;
     }
     
-    /***
+    /**
      * A match representation that has efficient method calls but is immutable.
-     * @author schmmd
+     * @author Michael Schmitz <schmmd@cs.washington.edu>
      *
      * @param <E>
      */
@@ -174,11 +174,11 @@ public abstract class Match<E> {
         }
     }
 
-    /***
+    /**
      * A match representation that is mutable but many method calls compute
      * values instead of returning stored values.  This is a good in-between
      * while building a match object.
-     * @author schmmd
+     * @author Michael Schmitz <schmmd@cs.washington.edu>
      *
      * @param <E>
      */
@@ -237,9 +237,9 @@ public abstract class Match<E> {
         }
     }
 
-    /***
+    /**
      * A captured group in a matched expression.
-     * @author schmmd
+     * @author Michael Schmitz <schmmd@cs.washington.edu>
      *
      * @param <E>
      */
@@ -274,7 +274,7 @@ public abstract class Match<E> {
             this(expr, new ArrayList<Token<E>>());
         }
         
-        /***
+        /**
          * Add tokens to the group.
          * @param group
          */
@@ -282,7 +282,7 @@ public abstract class Match<E> {
             this.tokens.addAll(group.tokens);
         }
         
-        /***
+        /**
          * @return the tokens matched.
          */
         public List<E> tokens() {
@@ -295,7 +295,7 @@ public abstract class Match<E> {
                     });
         }
         
-        /***
+        /**
          * A string representation of the group.
          * This is a lighter-weight representation than toString.
          */
@@ -303,7 +303,7 @@ public abstract class Match<E> {
             return Joiner.on(" ").join(this.tokens());
         }
 
-        /***
+        /**
          * @return the number of tokens matched.
          */
         public int tokenCount() {

@@ -1,5 +1,9 @@
 package edu.washington.cs.knowitall.regex;
 
+/**
+ *
+ * @author Michael Schmitz <schmmd@cs.washington.edu>
+ */
 public class RegexException extends RuntimeException {
     private static final long serialVersionUID = -3534531866062810681L;
     

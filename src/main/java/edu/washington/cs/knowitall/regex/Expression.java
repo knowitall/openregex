@@ -10,14 +10,19 @@ import com.google.common.base.Predicate;
 import edu.washington.cs.knowitall.regex.FiniteAutomaton.Automaton;
 import edu.washington.cs.knowitall.regex.FiniteAutomaton.State;
 
+/**
+ * Interface for a component of a regular expression.
+ *
+ * @author Michael Schmitz <schmmd@cs.washington.edu>
+ */
 public interface Expression<E> extends Predicate<E> {
     
     public Automaton<E> build();
     
-    /***
+    /**
      * Represents a matching group that is referred to by order number.
      *     {@code (<foo> <bar>+)}
-     * @author schmmd
+     * @author Michael Schmitz <schmmd@cs.washington.edu>
      *
      * @param <E> 
      */
@@ -47,7 +52,7 @@ public interface Expression<E> extends Predicate<E> {
             return "(" + subexpString() + ")";
         }
         
-        /***
+        /**
          * Convert the expression into a NFA.
          */
         @Override
@@ -81,10 +86,10 @@ public interface Expression<E> extends Predicate<E> {
         }
     }
     
-    /***
+    /**
      * Represents a matching group that is referred to by name.
      *     {@code (<name>:<foo> <bar>+)}
-     * @author schmmd
+     * @author Michael Schmitz <schmmd@cs.washington.edu>
      *
      * @param <E> 
      */
@@ -102,10 +107,10 @@ public interface Expression<E> extends Predicate<E> {
         }
     }
     
-    /***
+    /**
      * Represents a non-matching group.
      *     {@code (?:<foo> <bar>+)}
-     * @author schmmd
+     * @author Michael Schmitz <schmmd@cs.washington.edu>
      *
      * @param <E>
      */
@@ -120,10 +125,10 @@ public interface Expression<E> extends Predicate<E> {
         }
     }
     
-    /***
+    /**
      * Disjunction of two experssions.
      *     {@code <foo>|<bar>}
-     * @author schmmd
+     * @author Michael Schmitz <schmmd@cs.washington.edu>
      *
      * @param <E>
      */
@@ -146,7 +151,7 @@ public interface Expression<E> extends Predicate<E> {
             return this.expr1.toString() + " | " + this.expr2.toString();
         }
         
-        /***
+        /**
          * Convert the expression into a NFA.
          */
         @Override
@@ -166,10 +171,10 @@ public interface Expression<E> extends Predicate<E> {
         }
     }
     
-    /***
+    /**
      * Kleene-star: zero or more of the enclosed expression.
      *     {@code <foo>*}
-     * @author schmmd
+     * @author Michael Schmitz <schmmd@cs.washington.edu>
      *
      * @param <E>
      */
@@ -190,7 +195,7 @@ public interface Expression<E> extends Predicate<E> {
             return this.expr.toString() + "*";
         }
         
-        /***
+        /**
          * Convert the expression into a NFA.
          */
         @Override
@@ -213,11 +218,11 @@ public interface Expression<E> extends Predicate<E> {
         }
     }
     
-    /***
+    /**
      * One or more of the enclosed expression.  Plus(expr) is equivalent to
      * expr followed by Star(expr).
      *     {@code <foo>+} is the same as {@code <foo> <foo>*}
-     * @author schmmd
+     * @author Michael Schmitz <schmmd@cs.washington.edu>
      *
      * @param <E>
      */
@@ -238,7 +243,7 @@ public interface Expression<E> extends Predicate<E> {
             return this.expr.toString() + "+";
         }
         
-        /***
+        /**
          * Convert the expression into a NFA.
          */
         @Override
@@ -258,10 +263,10 @@ public interface Expression<E> extends Predicate<E> {
         }
     }
     
-    /***
+    /**
      * Zero or one of the enclosed expression.
      *     {@code <foo>?}
-     * @author schmmd
+     * @author Michael Schmitz <schmmd@cs.washington.edu>
      *
      * @param <E>
      */
@@ -282,7 +287,7 @@ public interface Expression<E> extends Predicate<E> {
             return this.expr.toString() + "?";
         }
         
-        /***
+        /**
          * Convert the expression into a NFA.
          */
         @Override
@@ -302,10 +307,10 @@ public interface Expression<E> extends Predicate<E> {
         }
     }
     
-    /***
+    /**
      * An expression with no subexpression that is evaluated against a token
      * using the supplied delegate.
-     * @author schmmd
+     * @author Michael Schmitz <schmmd@cs.washington.edu>
      *
      * @param <E>
      */
@@ -316,7 +321,7 @@ public interface Expression<E> extends Predicate<E> {
             this.source = source;
         }
 
-        /***
+        /**
          * The delegate to evaluate the expression against a token.
          */
         @Override
@@ -326,7 +331,7 @@ public interface Expression<E> extends Predicate<E> {
             return "<" + this.source + ">";
         }
         
-        /***
+        /**
          * Convert the expression into a NFA.
          */
         @Override
@@ -339,10 +344,10 @@ public interface Expression<E> extends Predicate<E> {
         }
     }
     
-    /***
+    /**
      * A non-consuming expression that matches a token against a property of 
      * the text, such as the start or end of a line.
-     * @author schmmd
+     * @author Michael Schmitz <schmmd@cs.washington.edu>
      *
      * @param <E>
      */
@@ -354,7 +359,7 @@ public interface Expression<E> extends Predicate<E> {
         
         public abstract boolean apply(boolean hasStart, List<E> tokens, int count);
 
-        /***
+        /**
          * Convert the expression into a NFA.
          */
         @Override
@@ -367,10 +372,10 @@ public interface Expression<E> extends Predicate<E> {
         }
     }
     
-    /***
+    /**
      * A non-consuming expression that matches the start of a line.
      *     {@code ^<foo>}
-     * @author schmmd
+     * @author Michael Schmitz <schmmd@cs.washington.edu>
      *
      * @param <E>
      */
@@ -386,10 +391,10 @@ public interface Expression<E> extends Predicate<E> {
         }
     }
     
-    /***
+    /**
      * A non-consuming expression that matches the end of a line.
      *     {@code <foo>$}
-     * @author schmmd
+     * @author Michael Schmitz <schmmd@cs.washington.edu>
      *
      * @param <E>
      */

@@ -15,6 +15,13 @@ import edu.washington.cs.knowitall.logic.LogicException.CompileLogicException;
 import edu.washington.cs.knowitall.logic.LogicException.TokenizeLogicException;
 import edu.washington.cs.knowitall.logic.Tok.Arg;
 
+/**
+ * A logic expression engine that operates over user specified objects.
+ *
+ * @author Michael Schmitz <schmmd@cs.washington.edu>
+ *
+ * @param  <E>  the type of the base expressions
+ */
 public class LogicExpression<E> implements Predicate<E> {
     private final Tok.Apply<E> expression;
     

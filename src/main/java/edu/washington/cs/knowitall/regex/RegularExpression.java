@@ -17,6 +17,14 @@ import edu.washington.cs.knowitall.regex.Expression.StartAssertion;
 import edu.washington.cs.knowitall.regex.FiniteAutomaton.Automaton;
 import edu.washington.cs.knowitall.regex.RegexException.TokenizeRegexException;
 
+/**
+ * A regular expression engine that operates over sequences of user-specified
+ * objects.
+ *
+ * @author Michael Schmitz <schmmd@cs.washington.edu>
+ *
+ * @param  <E>  the type of the sequence elements
+ */
 public class RegularExpression<E> implements Predicate<List<E>> {
     public final List<Expression<E>> expressions;
     public final Automaton<E> auto;
@@ -56,7 +64,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
         return Joiner.on(" ").join(expressions);
     }
     
-    /***
+    /**
      * Build an NFA from the list of expressions.
      * @param exprs
      * @return
@@ -66,7 +74,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
         return group.build();
     }
 
-    /***
+    /**
      * Apply the expression against a list of tokens.
      * 
      * @return true iff the expression if found within the tokens.
@@ -80,7 +88,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
         }
     }
     
-    /***
+    /**
      * Apply the expression against a list of tokens.
      * 
      * @return true iff the expression matches all of the tokens.
@@ -90,7 +98,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
         return match != null && match.endIndex() == tokens.size();
     }
 
-    /***
+    /**
      * Find the first match of the regular expression against tokens. This
      * method is slightly slower due to additional memory allocations. However,
      * the response has much greater detail and is very useful for
@@ -103,7 +111,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
         return this.find(tokens, 0);
     }
     
-    /***
+    /**
      * Find the first match of the regular expression against tokens, starting 
      * at the specified index.
      * 
@@ -123,7 +131,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
         return null;
     }
     
-    /***
+    /**
      * Determine if the regular expression matches the beginning of the
      * supplied tokens.
      * 
@@ -134,7 +142,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
         return this.lookingAt(tokens, 0);
     }
 
-    /***
+    /**
      * Determine if the regular expression matches the supplied tokens,
      * starting at the specified index.
      * 
@@ -156,7 +164,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
         }
     }
     
-    /***
+    /**
      * Find all non-overlapping matches of the regular expression against tokens.
      * 
      * @param tokens
@@ -183,7 +191,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
         return results;
     }
 
-    /***
+    /**
      * Convert a list of tokens (<...>) to a list of expressions.
      * 
      * @param tokens
@@ -342,7 +350,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
         return expressions;
     }
 
-    /***
+    /**
      * Split the string into an array of regular expression tokens (<...>).
      * 
      * @param expression
@@ -353,7 +361,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
         return splitInto(expression, tokenPattern);
     }
     
-    /***
+    /**
      * An interactive program that compiles an expression specified in arg1
      * and then reads strings from stdin, evaluating them against the
      * regular expression.

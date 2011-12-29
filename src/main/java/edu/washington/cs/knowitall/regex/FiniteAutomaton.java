@@ -12,18 +12,18 @@ import com.google.common.collect.Lists;
 import edu.washington.cs.knowitall.regex.Expression.AssertionExpression;
 import edu.washington.cs.knowitall.regex.Expression.MatchingGroup;
 
-/***
+/**
  * A finite automaton implementation.  There is support for epsilon
  * transitions (NFA) but if those are omitted then this works as an
  * implementation of a DFA.
- * @author schmmd
  *
+ * @author Michael Schmitz <schmmd@cs.washington.edu>
  */
 public class FiniteAutomaton {
-    /***
+    /**
      * A component automaton with a single start state and a single end
      * state.
-     * @author schmmd
+     * @author Michael Schmitz <schmmd@cs.washington.edu>
      *
      * @param <E>
      */
@@ -69,7 +69,7 @@ public class FiniteAutomaton {
             return new Match.FinalMatch<E>(match);
         }
         
-        /***
+        /**
          * Retrace the path through the NFA and produce an object that
          * represents the match.
          * @param tokenIterator an iterator over the tokens.
@@ -126,11 +126,11 @@ public class FiniteAutomaton {
             return state;
         }
         
-        /***
+        /**
          * A representation of a movement from a state to another, with a 
          * backreference to the previous state.  This is used in building
          * a match object once a solution has been found.
-         * @author schmmd
+         * @author Michael Schmitz <schmmd@cs.washington.edu>
          *
          * @param <E>
          */
@@ -154,7 +154,7 @@ public class FiniteAutomaton {
             }
         }
         
-        /***
+        /**
          * Expand all epsilon transitions for the supplied steps.  That is,
          * add all states available via an epsilon transition from a supplied
          * state to the list.
@@ -169,7 +169,7 @@ public class FiniteAutomaton {
             }
         }
         
-        /***
+        /**
          * Expand all epsilon transitions for the specified step.  That is,
          * add all states avaiable via an epsilon transition from step.state.
          * @param step
@@ -195,7 +195,7 @@ public class FiniteAutomaton {
             }
         }
         
-        /***
+        /**
          * Expand any state that has an assertion edge if the assertion passes
          * given the present state.
          * @param steps
@@ -224,7 +224,7 @@ public class FiniteAutomaton {
             return evaluate(tokens, steps, hasStart);
         }
         
-        /***
+        /**
          * Evaluate the NFA against the list of tokens using the Thompson NFA
          * algorithm.
          * @param tokens the tokens to evaluate against
@@ -294,9 +294,9 @@ public class FiniteAutomaton {
         }
     }
     
-    /***
+    /**
      * Representation of a state in the automaton.
-     * @author schmmd
+     * @author Michael Schmitz <schmmd@cs.washington.edu>
      *
      * @param <E>
      */
@@ -304,7 +304,7 @@ public class FiniteAutomaton {
         public final List<Edge<E>> edges = new ArrayList<Edge<E>>();
         public final List<Epsilon<E>> epsilons = new ArrayList<Epsilon<E>>();
         
-        /***
+        /**
          * Add an epsilon transition between this state and dest.
          * @param dest the state to connect
          */
@@ -312,7 +312,7 @@ public class FiniteAutomaton {
             this.epsilons.add(new Epsilon<E>(dest));
         }
         
-        /***
+        /**
          * Add an edge between this state and dest.
          * @param dest the state to connect
          * @param cost the expression of the edge
@@ -326,9 +326,9 @@ public class FiniteAutomaton {
         }
     }
     
-    /***
+    /**
      * A start or end state.
-     * @author schmmd
+     * @author Michael Schmitz <schmmd@cs.washington.edu>
      *
      * @param <E>
      */
@@ -344,9 +344,9 @@ public class FiniteAutomaton {
         }
     }
     
-    /***
+    /**
      * A start state.
-     * @author schmmd
+     * @author Michael Schmitz <schmmd@cs.washington.edu>
      *
      * @param <E>
      */
@@ -356,9 +356,9 @@ public class FiniteAutomaton {
         }
     }
     
-    /***
+    /**
      * An end state.
-     * @author schmmd
+     * @author Michael Schmitz <schmmd@cs.washington.edu>
      *
      * @param <E>
      */
@@ -368,9 +368,9 @@ public class FiniteAutomaton {
         }
     }
     
-    /***
+    /**
      * An abstract representation of an edge.
-     * @author schmmd
+     * @author Michael Schmitz <schmmd@cs.washington.edu>
      *
      * @param <E>
      */
@@ -382,9 +382,9 @@ public class FiniteAutomaton {
         }
     }
     
-    /***
+    /**
      * An edge with cost {@code expression}.
-     * @author schmmd
+     * @author Michael Schmitz <schmmd@cs.washington.edu>
      *
      * @param <E>
      */
@@ -412,9 +412,9 @@ public class FiniteAutomaton {
         }
     }
     
-    /***
+    /**
      * An edge without cost, an epsilon transition.
-     * @author schmmd
+     * @author Michael Schmitz <schmmd@cs.washington.edu>
      *
      * @param <E>
      */
