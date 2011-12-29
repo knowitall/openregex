@@ -34,7 +34,8 @@ public class RegularExpression<E> implements Predicate<List<E>> {
         this.auto = this.build(this.expressions);
     }
 
-    public static <E> RegularExpression<E> compile(String expression, Function<String, BaseExpression<E>> factory) {
+    public static <E> RegularExpression<E> compile(String expression, 
+            Function<String, BaseExpression<E>> factory) {
         return new RegularExpression(expression, factory);
     }
     
@@ -216,7 +217,8 @@ public class RegularExpression<E> implements Predicate<List<E>> {
             Matcher matcher;
             
             // skip whitespace
-            if ((matcher = whitespacePattern.matcher(string)).region(start, string.length()).lookingAt()) {
+            if ((matcher = whitespacePattern.matcher(string))
+                .region(start, string.length()).lookingAt()) {
                 start = matcher.end();
                 continue;
             }
@@ -269,7 +271,8 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                     
                     // make sure we found the end
                     if (end == -1) {
-                        throw new TokenizeRegexException("Error parsing group name.  Non-matching brackets (<>) or ([]).");
+                        throw new TokenizeRegexException(
+                                "Error parsing group name.  Non-matching brackets (<>) or ([]).");
                     }
                         
                     String token = string.substring(start + 1, end);
@@ -297,7 +300,8 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                     try {
                         stack = ' ';
                         if (expressions.size() < 2) {
-                            throw new IllegalStateException("OR operator is applied to fewer than 2 elements.");
+                            throw new IllegalStateException(
+                                    "OR operator is applied to fewer than 2 elements.");
                         }
                         
                         Expression<E> expr1 = expressions.remove(expressions.size() - 1);
@@ -309,7 +313,8 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                     }
                 }
             }
-            else if ((matcher = unaryPattern.matcher(string)).region(start, string.length()).lookingAt()) {
+            else if ((matcher = unaryPattern.matcher(string))
+                     .region(start, string.length()).lookingAt()) {
                 char operator = matcher.group(0).charAt(0);
                 
                 // pop the last expression
@@ -332,7 +337,8 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                 
                 start = matcher.end();
             }
-            else if ((matcher = binaryPattern.matcher(string)).region(start, string.length()).lookingAt()) {
+            else if ((matcher = binaryPattern.matcher(string))
+                     .region(start, string.length()).lookingAt()) {
                 tokens.add(matcher.group(0));
                 stack = '|';
                 start = matcher.end();
@@ -370,7 +376,8 @@ public class RegularExpression<E> implements Predicate<List<E>> {
     public static void main(String[] args) {
         Scanner scan = new Scanner(System.in);
                 
-        RegularExpression<String> regex = new RegularExpression<String>(args[0], new ExpressionFactory<String>() {
+        RegularExpression<String> regex = new RegularExpression<String>(args[0], 
+        new ExpressionFactory<String>() {
             @Override
             public BaseExpression<String> create(final String token) {
                 return new BaseExpression<String>(token) {
@@ -403,7 +410,10 @@ public class RegularExpression<E> implements Predicate<List<E>> {
         int i = 0;
         while (matcher.find(i)) {
             if (i < matcher.start()) {
-                throw new IllegalArgumentException("Could not split string into specified pattern.  Found matches '" + Joiner.on(", ").join(parts) + "' and then '" + string.charAt(i) + "' found between matches.");
+                throw new IllegalArgumentException(
+                        "Could not split string into specified pattern.  Found matches '" 
+                        + Joiner.on(", ").join(parts) + "' and then '" + string.charAt(i) 
+                        + "' found between matches.");
             }
             
             if (matcher.groupCount() > 0) {
@@ -417,7 +427,9 @@ public class RegularExpression<E> implements Predicate<List<E>> {
         }
         
         if (i != string.length()) {
-            throw new IllegalArgumentException("Pattern does not extend to end of string: " + i + "/" + string.length());
+            throw new IllegalArgumentException(
+                    "Pattern does not extend to end of string: " 
+                    + i + "/" + string.length());
         }
         
         return parts;

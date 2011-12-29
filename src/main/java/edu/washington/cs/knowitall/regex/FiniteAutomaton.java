@@ -65,7 +65,8 @@ public class FiniteAutomaton {
             }
             
             Match.IntermediateMatch<E> match = new Match.IntermediateMatch<E>();
-            buildMatch(sublist.iterator(), null, new AtomicInteger(startIndex), this.start, Lists.reverse(edges).iterator(), match);
+            buildMatch(sublist.iterator(), null, new AtomicInteger(startIndex), this.start, 
+                       Lists.reverse(edges).iterator(), match);
             return new Match.FinalMatch<E>(match);
         }
         
@@ -80,14 +81,20 @@ public class FiniteAutomaton {
          * @param match the solution.
          * @return
          */
-        private State<E> buildMatch(Iterator<E> tokenIterator, Expression<E> expression, AtomicInteger index, State<E> state, Iterator<AbstractEdge<E>> edgeIterator, Match.IntermediateMatch<E> match) {
+        private State<E> buildMatch(Iterator<E> tokenIterator, Expression<E> expression, 
+                AtomicInteger index, State<E> state, Iterator<AbstractEdge<E>> edgeIterator, 
+                Match.IntermediateMatch<E> match) {
+
             Match.IntermediateMatch<E> newMatch = new Match.IntermediateMatch<E>();
             
-            while (edgeIterator.hasNext() && !((state instanceof EndState<?>) && ((EndState<E>)state).expression == expression)) {
+            while (edgeIterator.hasNext() && !((state instanceof EndState<?>) 
+                   && ((EndState<E>)state).expression == expression)) {
+
                 AbstractEdge<E> edge = edgeIterator.next();
                 
                 // run the sub-automaton
-                if (edge instanceof Edge<?> && !(((Edge<?>) edge).expression instanceof AssertionExpression<?>)) {
+                if (edge instanceof Edge<?> 
+                    && !(((Edge<?>) edge).expression instanceof AssertionExpression<?>)) {
                     // consume a token, this is the base case
                     E token = tokenIterator.next();
                     newMatch.add(((Edge<E>)edge).expression, token, index.getAndIncrement());
@@ -107,7 +114,8 @@ public class FiniteAutomaton {
             }
             
             // add the sub match group
-            if (expression != null && (!newMatch.isEmpty() || expression instanceof MatchingGroup<?>)) {
+            if (expression != null 
+                && (!newMatch.isEmpty() || expression instanceof MatchingGroup<?>)) {
                 // create a wrapper for the expressions it matched
                 Match.Group<E> pair = new Match.Group<E>(expression);
                 for (Match.Group<E> p : newMatch.pairs()) {
@@ -204,7 +212,8 @@ public class FiniteAutomaton {
          * @param tokens
          * @param totalTokens
          */
-        private void expandAssertions(List<Step<E>> steps, List<Step<E>> newsteps, boolean hasStart, List<E> tokens, int totalTokens) {
+        private void expandAssertions(List<Step<E>> steps, List<Step<E>> newsteps, boolean hasStart,
+                                      List<E> tokens, int totalTokens) {
             for (Step<E> step : steps) {
                 for (final Edge<E> edge : step.state.edges) {
                     if (edge.expression instanceof AssertionExpression<?>) {
@@ -340,7 +349,8 @@ public class FiniteAutomaton {
         }
         
         public String toString() {
-            return this.getClass().getSimpleName() + "("+this.expression.toString()+"):" + this.edges.size();
+            return this.getClass().getSimpleName() 
+                   + "("+this.expression.toString()+"):" + this.edges.size();
         }
     }
     

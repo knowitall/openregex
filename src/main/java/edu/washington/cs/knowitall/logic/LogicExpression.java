@@ -45,7 +45,8 @@ public class LogicExpression<E> implements Predicate<E> {
         expression = compile(rpn);
     }
 
-    public static <E> LogicExpression<E> compile(String input, Function<String, Tok.Arg<E>> factory) {
+    public static <E> LogicExpression<E> compile(String input, 
+            Function<String, Tok.Arg<E>> factory) {
         return new LogicExpression(input, factory);
     }
     
@@ -110,7 +111,9 @@ public class LogicExpression<E> implements Predicate<E> {
                     }
                 }
                 catch (EmptyStackException e) {
-                    throw new CompileLogicException("No argument for operator (stack empty): " + tok.toString());
+                    throw new CompileLogicException(
+                            "No argument for operator (stack empty): " 
+                            + tok.toString());
                 }
             }
         }
@@ -164,8 +167,9 @@ public class LogicExpression<E> implements Predicate<E> {
     /***
      * Convert an infix string logic representation to an infix list of tokens.
      * @param input an infix string logic representation.
-     * @param factory a delegate that converts a string representation of an argument into a token object.
-     * @return 
+     * @param factory a delegate that converts a string representation of an
+     * argument into a token object.  @return 
+     *
      * @throws TokenizeLogicException
      */
     public List<Tok<E>> tokenize(String input, Function<String, Tok.Arg<E>> factory) 
@@ -314,7 +318,8 @@ public class LogicExpression<E> implements Predicate<E> {
         while (scan.hasNextLine()) {
             String line = scan.nextLine();
             
-            LogicExpression<String> expr = new LogicExpression<String>(line, new ArgFactory<String>() {
+            LogicExpression<String> expr = new LogicExpression<String>(line, 
+            new ArgFactory<String>() {
                 @Override
                 public Arg<String> create(final String string) {
                     return new Arg.Pred<String>(string) {
