@@ -8,6 +8,7 @@ import java.util.Scanner;
 import java.util.Stack;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Function;
 
 import edu.washington.cs.knowitall.logic.LogicException.ApplyLogicException;
 import edu.washington.cs.knowitall.logic.LogicException.CompileLogicException;
@@ -25,7 +26,7 @@ public class LogicExpression<E> implements Predicate<E> {
      * @throws TokenizeLogicException
      * @throws CompileLogicException
      */
-    public LogicExpression(String input, ArgFactory<E> factory)
+    public LogicExpression(String input, Function<String, Tok.Arg<E>> factory)
             throws TokenizeLogicException, CompileLogicException {
         // convert to tokens
         List<Tok<E>> tokens = tokenize(input, factory);
@@ -156,7 +157,8 @@ public class LogicExpression<E> implements Predicate<E> {
      * @return 
      * @throws TokenizeLogicException
      */
-    public List<Tok<E>> tokenize(String input, ArgFactory<E> factory) throws TokenizeLogicException {
+    public List<Tok<E>> tokenize(String input, Function<String, Tok.Arg<E>> factory) 
+    throws TokenizeLogicException {
         List<Tok<E>> tokens = new ArrayList<Tok<E>>();
 
         int i = 0;
