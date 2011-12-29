@@ -82,7 +82,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
      */
     public boolean matches(List<E> tokens) {
         Match<E> match = this.lookingAt(tokens, 0);
-        return match != null && match.length() == tokens.size();
+        return match != null && match.endIndex() == tokens.size();
     }
 
     /***
