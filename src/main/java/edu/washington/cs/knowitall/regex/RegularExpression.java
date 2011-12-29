@@ -368,37 +368,24 @@ public class RegularExpression<E> implements Predicate<List<E>> {
     }
     
     /**
-     * An interactive program that compiles an expression specified in arg1
-     * and then reads strings from stdin, evaluating them against the
-     * regular expression.
+     * An interactive program that compiles a word-based regular expression
+     * specified in arg1 and then reads strings from stdin, evaluating them
+     * against the regular expression.
      * @param args
      */
     public static void main(String[] args) {
         Scanner scan = new Scanner(System.in);
                 
-        RegularExpression<String> regex = new RegularExpression<String>(args[0], 
-        new ExpressionFactory<String>() {
-            @Override
-            public BaseExpression<String> create(final String token) {
-                return new BaseExpression<String>(token) {
-                    private final Pattern pattern;
-                    
-                    {
-                        pattern = Pattern.compile(token);
-                    }
-                        
-                    @Override
-                    public boolean apply(String entity) {
-                        return pattern.matcher(entity).matches();
-                    }};
-            }});
-        
-        System.out.println(regex);
+        RegularExpression<String> regex = RegularExpressions.word(args[0]);
+        System.out.println("regex: " + regex);
+        System.out.println();
         
         while (scan.hasNextLine()) {
             String line = scan.nextLine();
             
-            System.out.println(regex.apply(Arrays.asList(line.split("\\s+"))));
+            System.out.println("contains: " + regex.apply(Arrays.asList(line.split("\\s+"))));
+            System.out.println("matches:  " + regex.matches(Arrays.asList(line.split("\\s+"))));
+            System.out.println();
         }
     }
 

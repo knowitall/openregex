@@ -323,20 +323,11 @@ public class LogicExpression<E> implements Predicate<E> {
         while (scan.hasNextLine()) {
             String line = scan.nextLine();
             
-            LogicExpression<String> expr = new LogicExpression<String>(line, 
-            new ArgFactory<String>() {
-                @Override
-                public Arg<String> create(final String string) {
-                    return new Arg.Pred<String>(string) {
-                        @Override
-                        public boolean apply(String entity) {
-                            return "true".equals(string);
-                        }
-                    };
-                }});
+            LogicExpression<String> expr = LogicExpressions.trivial(line);
             
-            System.out.println(expr.toString());
-            System.out.println(expr.apply(""));
+            System.out.println("string: " + expr.toString());
+            System.out.println("value:  " + expr.apply(null));
+            System.out.println();
         }
     }
 }
