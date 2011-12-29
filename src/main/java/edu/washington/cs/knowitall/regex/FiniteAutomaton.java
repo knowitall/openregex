@@ -292,44 +292,6 @@ public class FiniteAutomaton {
             
             return solution;
         }
-        
-        /***
-         * Bad recursive solution.
-         * @param tokens
-         * @param state
-         * @param edges
-         * @return
-         */
-        /*
-        private boolean lookingAt(List<E> tokens, State<E> state, Stack<Edge<E>> edges) {
-            // check if at end
-            if (state == this.end) {
-                return true;
-            }
-            
-            // loop over edges
-            for (Edge<E> edge : state.edges) {                
-                // try free edges
-                if (edge.isEpsilon()) {
-                    if (edges != null) edges.push(edge);
-                    if (lookingAt(tokens, edge.dest, edges)) {
-                        return true;
-                    }
-                    if (edges != null) edges.pop();
-                }
-                // try other edges if they match the current token
-                else if (tokens.size() > 0 && edge.apply(tokens.get(0))) {
-                    if (edges != null) edges.push(edge);
-                    if (lookingAt(tokens.subList(1, tokens.size()), edge.dest, edges)) {
-                        return true;
-                    }
-                    if (edges != null) edges.pop();
-                }
-            }
-            
-            return false;
-        }
-        */
     }
     
     /***
