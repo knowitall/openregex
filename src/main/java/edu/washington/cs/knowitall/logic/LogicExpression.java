@@ -26,7 +26,7 @@ public class LogicExpression<E> implements Predicate<E> {
      * @throws TokenizeLogicException
      * @throws CompileLogicException
      */
-    public LogicExpression(String input, Function<String, Tok.Arg<E>> factory)
+    protected LogicExpression(String input, Function<String, Tok.Arg<E>> factory)
             throws TokenizeLogicException, CompileLogicException {
         // convert to tokens
         List<Tok<E>> tokens = tokenize(input, factory);
@@ -36,6 +36,10 @@ public class LogicExpression<E> implements Predicate<E> {
         
         // compile the expression
         expression = compile(rpn);
+    }
+
+    public static <E> LogicExpression<E> compile(String input, Function<String, Tok.Arg<E>> factory) {
+        return new LogicExpression(input, factory);
     }
     
     public String toString() {

@@ -10,10 +10,10 @@ class RegularExpressionAssertionSpec extends Specification {
   val regexTokens = List("^", "<is>", "<a>", "$")
   val matchTokens = List("this", "is", "a", "test")
 
-  val regex = makeRegex(regexTokens.tail.init.mkString(" "))
-  val regexEnd = makeRegex(regexTokens.tail.mkString(" "))
-  val regexStart = makeRegex(regexTokens.init.mkString(" "))
-  val regexBoth = makeRegex(regexTokens.mkString(" "))
+  val regex = RegularExpressions.word(regexTokens.tail.init.mkString(" "))
+  val regexEnd = RegularExpressions.word(regexTokens.tail.mkString(" "))
+  val regexStart = RegularExpressions.word(regexTokens.init.mkString(" "))
+  val regexBoth = RegularExpressions.word(regexTokens.mkString(" "))
 
   def evaluate(regex: RegularExpression[String], tokens: List[String], value: Boolean) =
     (if (value) "" else "not ") + "be found in '" + tokens.mkString(" ") + "'" in {
@@ -46,16 +46,5 @@ class RegularExpressionAssertionSpec extends Specification {
     evaluate(regexBoth, matchTokens, false)
     evaluate(regexBoth, matchTokens.tail, false)
     evaluate(regexBoth, matchTokens.init, false)
-  }
-
-  def makeRegex(input: String) = {
-    new RegularExpression[String](input,
-      new ExpressionFactory[String]() {
-        override def create(string: String): BaseExpression[String] = {
-          new BaseExpression[String](string) {
-            override def apply(token: String): Boolean = token == string;
-          };
-        }
-      })
   }
 }

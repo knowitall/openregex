@@ -7,7 +7,7 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class RegularExpressionNamedGroupSpec extends Specification {
-  val regex = makeRegex("(<subject>: <I> | (?: <The> (<subjadj>: <crazy>)? <Mariners>)) <know> <all> <of> (<poss>: <her> | (?: <the> (<possadj>: <dirty>?) <King> <'s>)) <secrets>")
+  val regex = RegularExpressions.word("(<subject>: <I> | (?: <The> (<subjadj>: <crazy>)? <Mariners>)) <know> <all> <of> (<poss>: <her> | (?: <the> (<possadj>: <dirty>?) <King> <'s>)) <secrets>")
       
   regex.toString should {
     "match" in {
@@ -33,16 +33,5 @@ class RegularExpressionNamedGroupSpec extends Specification {
       m.group("subject").text must_== "The Mariners"
       m.group("poss").text must_== "her"
     }
-  }
-  
-  def makeRegex(input: String) = {
-    new RegularExpression[String](input,
-      new ExpressionFactory[String]() {
-        override def create(string: String): BaseExpression[String] = {
-          new BaseExpression[String](string) {
-            override def apply(token: String): Boolean = token == string;
-          };
-        }
-      })
   }
 }

@@ -7,7 +7,7 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class RegularExpressionSpec extends Specification {
-  val regex = makeRegex("<this> <is> (((?:(?: <a> <very>+) | <an>) <amazing>? <new>) | (?: <a> <many>* <centuries> <old>)) <test>")
+  val regex = RegularExpressions.word("<this> <is> (((?:(?: <a> <very>+) | <an>) <amazing>? <new>) | (?: <a> <many>* <centuries> <old>)) <test>")
       
   regex.toString should {
     "match" in {
@@ -34,16 +34,5 @@ class RegularExpressionSpec extends Specification {
       m.groups().size() must_== 2
       m.groups().get(1).text must_== "a centuries old"
     }
-  }
-  
-  def makeRegex(input: String) = {
-    new RegularExpression[String](input,
-      new ExpressionFactory[String]() {
-        override def create(string: String): BaseExpression[String] = {
-          new BaseExpression[String](string) {
-            override def apply(token: String): Boolean = token == string;
-          };
-        }
-      })
   }
 }

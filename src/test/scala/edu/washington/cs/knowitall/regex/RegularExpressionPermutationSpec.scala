@@ -11,7 +11,7 @@ class RegularExpressionPermutationSpec extends Specification {
   val tokens = List("<this>+", "<is>*", "<a>?", "<test>")
   tokens.permutations.foreach { permutation =>
     permutation.mkString("'", " ", "'") should {
-      val regex = makeRegex(permutation.mkString(" "))
+      val regex = RegularExpressions.word(permutation.mkString(" "))
       testRegex(regex)
       
       // TODO: hack
@@ -73,16 +73,5 @@ class RegularExpressionPermutationSpec extends Specification {
         regex.matches(test.tokens) must beTrue.iff(test.value)
       }
     }
-  }
-  
-  def makeRegex(input: String) = {
-    new RegularExpression[String](input,
-      new ExpressionFactory[String]() {
-        override def create(string: String): BaseExpression[String] = {
-          new BaseExpression[String](string) {
-            override def apply(token: String): Boolean = token == string;
-          };
-        }
-      })
   }
 }

@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
+import com.google.common.base.Function;
 
 import edu.washington.cs.knowitall.regex.Expression.BaseExpression;
 import edu.washington.cs.knowitall.regex.Expression.EndAssertion;
@@ -20,9 +21,13 @@ public class RegularExpression<E> implements Predicate<List<E>> {
     public final List<Expression<E>> expressions;
     public final Automaton<E> auto;
 
-    public RegularExpression(String expression, ExpressionFactory<E> factory) {
+    protected RegularExpression(String expression, Function<String, BaseExpression<E>> factory) {
         this.expressions = tokenize(expression, factory);
         this.auto = this.build(this.expressions);
+    }
+
+    public static <E> RegularExpression<E> compile(String expression, Function<String, BaseExpression<E>> factory) {
+        return new RegularExpression(expression, factory);
     }
     
     @Override
@@ -188,7 +193,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
      * @return
      */
     public List<Expression<E>> tokenize(String string,
-            ExpressionFactory<E> factory) {
+            Function<String, BaseExpression<E>> factory) {
         List<Expression<E>> expressions = new ArrayList<Expression<E>>();
         
         final Pattern whitespacePattern = Pattern.compile("\\s+");
@@ -261,7 +266,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                         
                     String token = string.substring(start + 1, end);
                     try {
-                        BaseExpression<E> base = factory.create(token);
+                        BaseExpression<E> base = factory.apply(token);
                         expressions.add(base);
                         
                         start = end + 1;

@@ -75,7 +75,7 @@ class LogicSpec extends Specification {
     }
     
   def logic(logic: String) = 
-    new LogicExpression[String](logic, new ArgFactory[String]() {
+    LogicExpression.compile(logic, new ArgFactory[String]() {
         override def create(string: String) = 
           new Arg.Pred[String](string) {
             override def apply(entity: String) = "true".equals(string);
