@@ -128,8 +128,8 @@ public interface Expression<E> extends Predicate<E> {
      * @param <E>
      */
     public static class Or<E> implements Expression<E> {
-        Expression<E> expr1;
-        Expression<E> expr2;
+        public final Expression<E> expr1;
+        public final Expression<E> expr2;
         
         public Or(Expression<E> expr1, Expression<E> expr2) {
             this.expr1 = expr1;
@@ -174,7 +174,7 @@ public interface Expression<E> extends Predicate<E> {
      * @param <E>
      */
     public static class Star<E> implements Expression<E> {
-        Expression<E> expr;
+        public final Expression<E> expr;
         
         public Star(Expression<E> expr) {
             this.expr = expr;
