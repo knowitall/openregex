@@ -51,7 +51,12 @@ public class LogicExpression<E> implements Predicate<E> {
     }
     
     public String toString() {
-        return expression.toString();
+        if (this.isEmpty()) {
+            return "(empty)";
+        }
+        else {
+            return expression.toString();
+        }
     }
 
     
