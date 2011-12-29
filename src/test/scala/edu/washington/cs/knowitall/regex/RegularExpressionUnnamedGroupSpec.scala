@@ -1,0 +1,49 @@
+package edu.washington.cs.knowitall.regex
+import org.junit.runner.RunWith
+import edu.washington.cs.knowitall.regex.Expression.BaseExpression
+import scala.collection.JavaConversions._
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
+
+@RunWith(classOf[JUnitRunner])
+class RegularExpressionSpec extends Specification {
+  val regex = makeRegex("<this> <is> (((?:(?: <a> <very>+) | <an>) <amazing>? <new>) | (?: <a> <many>* <centuries> <old>)) <test>")
+      
+  regex.toString should {
+    "match" in {
+      regex.apply("this is a very very very amazing new test".split(" ").toList) must beTrue
+      regex.apply("this is a very new test".split(" ").toList) must beTrue
+      regex.apply("this is an amazing new test".split(" ").toList) must beTrue
+      regex.apply("this is a centuries old test".split(" ").toList) must beTrue
+      regex.apply("this is a many many centuries old test".split(" ").toList) must beTrue
+    }
+    
+    "not match" in {
+      regex.apply("this is a amazing new test".split(" ").toList) must beFalse
+    }
+    
+    "yield the correct groups" in {
+      val m = regex.find("this is a very very very amazing new test".split(" ").toList)
+      m.groups().size() must_== 3
+      m.groups().get(1).text must_== "a very very very amazing new"
+      m.groups().get(2).text must_== "a very very very amazing new"
+    }
+    
+    "yield the correct groups" in {
+      val m = regex.find("this is a centuries old test".split(" ").toList)
+      m.groups().size() must_== 2
+      m.groups().get(1).text must_== "a centuries old"
+    }
+  }
+  
+  def makeRegex(input: String) = {
+    new RegularExpression[String](input,
+      new ExpressionFactory[String]() {
+        override def create(string: String): BaseExpression[String] = {
+          new BaseExpression[String](string) {
+            override def apply(token: String): Boolean = token == string;
+          };
+        }
+      })
+  }
+}
