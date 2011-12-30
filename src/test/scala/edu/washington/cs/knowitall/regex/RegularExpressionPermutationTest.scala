@@ -8,29 +8,31 @@ import scala.collection.immutable.SortedSet
 
 @RunWith(classOf[JUnitRunner])
 class RegularExpressionPermutationTest extends Specification {
+  case class TestCase(tokens: List[String], value: Boolean) extends Ordered[TestCase] {
+    def extend(test: TestCase) =
+      TestCase(tokens ::: test.tokens, value & test.value)
+    
+    def compare(that: TestCase) = {
+      val c1 = this.tokens.mkString(" ") compare that.tokens.mkString(" ")
+      if (c1 != 0) c1
+      else this.value.compare(that.value)
+    }
+  }
+
   val tokens = List("<this>+", "<is>*", "<a>?", "<test>")
   tokens.permutations.foreach { permutation =>
     permutation.mkString("'", " ", "'") should {
-      val regex = RegularExpressions.word(permutation.mkString(" "))
-      testRegex(regex)
-      
-      // TODO: hack
-      1 must_==(1)
+      "match sentences correctly" in {
+        val regex = RegularExpressions.word(permutation.mkString(" "))
+
+        { test: TestCase => 
+          regex.matches(test.tokens) aka test.tokens.mkString("'", " ", "'") must beTrue.iff(test.value)
+        }.forall(cases(regex))
+      }
     }
   }
   
-  def testRegex(regex: RegularExpression[String]) = {
-    case class TestCase(tokens: List[String], value: Boolean) extends Ordered[TestCase] {
-      def extend(test: TestCase) =
-        TestCase(tokens ::: test.tokens, value & test.value)
-      
-      def compare(that: TestCase) = {
-        val c1 = this.tokens.mkString(" ") compare that.tokens.mkString(" ")
-        if (c1 != 0) c1
-        else this.value.compare(that.value)
-      }
-    }
-    
+  def cases(regex: RegularExpression[String]) = { 
     def makeCases(exprs: List[Expression[String]]) = {
       def makeNext(expr: Expression[String]): (List[List[String]], List[List[String]]) = expr match {
         case star: Expression.Star[_] =>
@@ -66,12 +68,8 @@ class RegularExpressionPermutationTest extends Specification {
       }
       
       SortedSet[TestCase]() ++ rec(exprs)
-    }
-    
-    makeCases(regex.expressions.toList).foreach { test =>
-      ((if (test.value) "" else "not") + " match " + test.tokens.mkString("'", " ", "'")) in {
-        regex.matches(test.tokens) must beTrue.iff(test.value)
-      }
-    }
+    }   
+
+    makeCases(regex.expressions.toList)
   }
 }
