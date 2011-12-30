@@ -3,11 +3,12 @@ package edu.washington.cs.knowitall.logic;
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.specs2.ScalaCheck
 
 import edu.washington.cs.knowitall.logic.Tok.Arg;
 
 @RunWith(classOf[JUnitRunner])
-class LogicTest extends Specification {
+class LogicTest extends Specification with ScalaCheck {
   "order of operations" should {
     "infer the correct parenthesis" in {
       logic("false & false & false").toString() must_== "(false & (false & false))"
@@ -17,54 +18,72 @@ class LogicTest extends Specification {
   }
 
   "two variable logic expressions" should {
-    "evaluate correctly" in {
-      forall(0 until 4) { i =>
-        val a = (i & 1) != 0;
-        val b = (i & 2) != 0;
+    "evaluate (a | b) correctly" in {
+      check { (a: Boolean, b: Boolean) => logic(expression("a | b", a, b))(null) must_== (a | b) }
+    }
 
-        logic(expression("a | b", a, b))("true") must_== (a | b)
-        logic(expression("a & b", a, b))("true") must_== (a & b)
-      }
+    "evaluate (a & b) correctly" in {
+      check { (a: Boolean, b: Boolean) => logic(expression("a & b", a, b))(null) must_== (a & b) }
     }
   }
 
   "three variable logic expressions" should {
-    "evaluate correctly" in {
-      forall(0 until 8) { i =>
-        val a = (i & 1) != 0
-        val b = (i & 2) != 0
-        val c = (i & 4) != 0
+    "evaluate (a | (b & c)) correctly" in {
+      check { (a: Boolean, b: Boolean, c: Boolean) => logic(expression("a | (b & c)", a, b, c))(null) must_== (a | (b & c)) }
+    }
 
-        logic(expression("a | (b & c)", a, b, c))("true") must_== (a | (b & c))
-        logic(expression("a & (b & c)", a, b, c))("true") must_== (a & (b & c))
-        logic(expression("a & (b | c)", a, b, c))("true") must_== (a & (b | c))
-        logic(expression("a | (b | c)", a, b, c))("true") must_== (a | (b | c))
-      }
+    "evaluate (a & (b & c)) correctly" in {
+      check { (a: Boolean, b: Boolean, c: Boolean) => logic(expression("a & (b & c)", a, b, c))(null) must_== (a & (b & c)) }
+    }
+
+    "evaluate (a & (b | c)) correctly" in {
+      check { (a: Boolean, b: Boolean, c: Boolean) => logic(expression("a & (b | c)", a, b, c))(null) must_== (a & (b | c)) }
+    }
+
+    "evaluate (a | (b | c)) correctly" in {
+      check { (a: Boolean, b: Boolean, c: Boolean) => logic(expression("a | (b | c)", a, b, c))(null) must_== (a | (b | c)) }
     }
   }
 
   "four variable logic expressions" should {
-    "evaluate correctly" in {
-      forall (0 until 16) { i =>
-        val a = (i & 1) != 0;
-        val b = (i & 2) != 0;
-        val c = (i & 4) != 0;
-        val d = (i & 8) != 0;
-            
-        logic(expression("a | (b & c & d)", a, b, c, d))("true") must_== (a | (b & c & d))
-        logic(expression("a | (b & c | d)", a, b, c, d))("true") must_== (a | (b & c | d))
-        logic(expression("a | (b | c & d)", a, b, c, d))("true") must_== (a | (b | c & d))
-        logic(expression("a | (b | c | d)", a, b, c, d))("true") must_== (a | (b | c | d))
-        logic(expression("a & (b & c & d)", a, b, c, d))("true") must_== (a & (b & c & d))
-        logic(expression("a & (b & c | d)", a, b, c, d))("true") must_== (a & (b & c | d))
-        logic(expression("a & (b | c & d)", a, b, c, d))("true") must_== (a & (b | c & d))
-        logic(expression("a & (b | c | d)", a, b, c, d))("true") must_== (a & (b | c | d))
-        logic(expression("(a | b) & (c | d)", a, b, c, d))("true") must_== ((a | b) & (c | d))
-        logic(expression("(a & b) | (c & d)", a, b, c, d))("true") must_== ((a & b) | (c & d))
-        logic(expression("!(a | b) & (c | d)", a, b, c, d))("true") must_== (!(a | b) & (c | d))
-        logic(expression("(a | b) & !(c | d)", a, b, c, d))("true") must_== (a | b) & !(c | d)
-        logic(expression("!((a | b) & !(c | d))", a, b, c, d))("true") must_== !((a | b) & !(c | d))
-      }
+    "evaluate (a | (b & c & d)) correctly" in {
+      check { (a: Boolean, b: Boolean, c: Boolean, d: Boolean) => logic(expression("a | (b & c & d)", a, b, c, d))(null) must_== (a | (b & c & d)) }
+    }
+    "evaluate (a | (b & c | d) correctly" in {
+      check { (a: Boolean, b: Boolean, c: Boolean, d: Boolean) => logic(expression("a | (b & c | d)", a, b, c, d))(null) must_== (a | (b & c | d)) }
+    }
+    "evaluate (a | (b | c & d) correctly" in {
+      check { (a: Boolean, b: Boolean, c: Boolean, d: Boolean) => logic(expression("a | (b | c & d)", a, b, c, d))(null) must_== (a | (b | c & d)) }
+    }
+    "evaluate (a | (b | c | d)) correctly" in {
+      check { (a: Boolean, b: Boolean, c: Boolean, d: Boolean) => logic(expression("a | (b | c | d)", a, b, c, d))(null) must_== (a | (b | c | d)) }
+    }
+    "evaluate (a & (b & c & d)) correctly" in {
+      check { (a: Boolean, b: Boolean, c: Boolean, d: Boolean) => logic(expression("a & (b & c & d)", a, b, c, d))(null) must_== (a & (b & c & d)) }
+    }
+    "evaluate (a & (b & c | d)) correctly" in {
+      check { (a: Boolean, b: Boolean, c: Boolean, d: Boolean) => logic(expression("a & (b & c | d)", a, b, c, d))(null) must_== (a & (b & c | d)) }
+    }
+    "evaluate (a & (b | c & d)) correctly" in {
+      check { (a: Boolean, b: Boolean, c: Boolean, d: Boolean) => logic(expression("a & (b | c & d)", a, b, c, d))(null) must_== (a & (b | c & d)) }
+    }
+    "evaluate (a & (b | c | d)) correctly" in {
+      check { (a: Boolean, b: Boolean, c: Boolean, d: Boolean) => logic(expression("a & (b | c | d)", a, b, c, d))(null) must_== (a & (b | c | d)) }
+    }
+    "evaluate ((a | b) & (c | d)) correctly" in {
+      check { (a: Boolean, b: Boolean, c: Boolean, d: Boolean) => logic(expression("(a | b) & (c | d)", a, b, c, d))(null) must_== ((a | b) & (c | d)) }
+    }
+    "evaluate ((a & b) | (c & d)) correctly" in {
+      check { (a: Boolean, b: Boolean, c: Boolean, d: Boolean) => logic(expression("(a & b) | (c & d)", a, b, c, d))(null) must_== ((a & b) | (c & d)) }
+    }
+    "evaluate (!(a | b) & (c | d)) correctly" in {
+      check { (a: Boolean, b: Boolean, c: Boolean, d: Boolean) => logic(expression("!(a | b) & (c | d)", a, b, c, d))(null) must_== (!(a | b) & (c | d)) }
+    }
+    "evaluate ((a | b) & !(c | d)) correctly" in {
+      check { (a: Boolean, b: Boolean, c: Boolean, d: Boolean) => logic(expression("(a | b) & !(c | d)", a, b, c, d))(null) must_== (a | b) & !(c | d) }
+    }
+    "evaluate (!((a | b) & !(c | d))) correctly" in {
+      check { (a: Boolean, b: Boolean, c: Boolean, d: Boolean) => logic(expression("!((a | b) & !(c | d))", a, b, c, d))(null) must_== !((a | b) & !(c | d)) }
     }
   }
 
