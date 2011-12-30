@@ -7,11 +7,11 @@ import com.google.common.base.Predicate;
  *
  * @author Michael Schmitz <schmmd@cs.washington.edu>
  */
-public abstract class Tok<E> {
+public abstract class Expression<E> {
     /**
      * An expression that can be applied.
      */
-    public static abstract class Apply<E> extends Tok<E> {
+    public static abstract class Apply<E> extends Expression<E> {
         /**
          * Apply this expression to an entity to get true or false.
          */
@@ -185,7 +185,7 @@ public abstract class Tok<E> {
      * A parenthesis, used for grouping.  These are only uses prior to building
      * the AST.
      */
-    public static class Paren<E> extends Tok<E> {
+    public static class Paren<E> extends Expression<E> {
         /**
          * A left parenthesis.
          */
