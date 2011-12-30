@@ -86,7 +86,6 @@ the pattern and the sentence in example 2.
 
 SUPPORTED CONSTRUCTS
 
-
 The regular expression library supports the following constructs.
 
     | alternation
