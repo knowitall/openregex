@@ -1,15 +1,34 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>edu.washington.cs.knowitall</groupId>
-  <artifactId>regex</artifactId>
-  <name>regex</name>
-  <version>1.0.0-SNAPSHOT</version>
   <parent>
     <groupId>edu.washington.cs.knowitall</groupId>
     <artifactId>knowitall</artifactId>
     <version>2.0.0</version>
   </parent>
+  <artifactId>openregex</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+  <name>openregex</name>
+  <description>OpenRegex is a library for running regular expressions over sequences of user-defined objects.</description>
+  <url>http://knowitall.github.com/openregex/</url>
+  <licenses>
+    <license>
+      <name>GPL 3</name>
+      <url>http://gplv3.fsf.org/</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>Michael Schmitz</name>
+    </developer>
+  </developers>
+  <inceptionYear>2010</inceptionYear>
+  <scm>
+    <url>https://github.com/knowitall/openregex</url>
+    <connection>scm:git://github.com/knowitall/openregex.git</connection>
+    <developerConnection>scm:git:git@github.com:knowitall/openregex.git</developerConnection>
+  </scm>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -17,10 +36,6 @@
     <repository>
       <id>knowitall-public</id>
       <url>http://knowitall.cs.washington.edu/maven2</url>
-    </repository>
-    <repository>
-      <id>knowitall-snapshot</id>
-      <url>http://knowitall.cs.washington.edu/maven2-snapshot</url>
     </repository>
     <repository>
       <id>scala-tools.org</id>
@@ -31,11 +46,23 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>jsr305</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.10</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-library</artifactId>
+      <version>2.9.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
