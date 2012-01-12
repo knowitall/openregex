@@ -36,7 +36,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
 
     public static <E> RegularExpression<E> compile(String expression, 
             Function<String, BaseExpression<E>> factory) {
-        return new RegularExpression(expression, factory);
+        return new RegularExpression<E>(expression, factory);
     }
     
     @Override
