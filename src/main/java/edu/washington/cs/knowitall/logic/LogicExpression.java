@@ -50,7 +50,7 @@ public class LogicExpression<E> implements Predicate<E> {
 
     public static <E> LogicExpression<E> compile(String input, 
             Function<String, Arg<E>> factory) {
-        return new LogicExpression(input, factory);
+        return new LogicExpression<E>(input, factory);
     }
     
     public String toString() {
