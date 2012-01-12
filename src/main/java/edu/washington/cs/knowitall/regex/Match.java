@@ -22,8 +22,6 @@ import edu.washington.cs.knowitall.regex.Expression.BaseExpression;
  * @param <E>
  */
 public abstract class Match<E> {
-    private static final long serialVersionUID = 1L;
-
     protected List<Match.Group<E>> pairs;
     
     protected Match() {
@@ -143,8 +141,6 @@ public abstract class Match<E> {
      * @param <E>
      */
     protected final static class FinalMatch<E> extends Match<E> {
-        private static final long serialVersionUID = 1L;
-
         private final int startIndex;
         private final List<E> tokens;
         private final List<Group<E>> groups;
@@ -183,8 +179,6 @@ public abstract class Match<E> {
      * @param <E>
      */
     protected final static class IntermediateMatch<E> extends Match<E> {
-        private static final long serialVersionUID = 1L;
-        
         protected IntermediateMatch() {
             super();
         }
