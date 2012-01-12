@@ -13,7 +13,10 @@ import com.google.common.base.Function;
 import edu.washington.cs.knowitall.logic.LogicException.ApplyLogicException;
 import edu.washington.cs.knowitall.logic.LogicException.CompileLogicException;
 import edu.washington.cs.knowitall.logic.LogicException.TokenizeLogicException;
-import edu.washington.cs.knowitall.logic.Tok.Arg;
+import edu.washington.cs.knowitall.logic.Expression.Apply;
+import edu.washington.cs.knowitall.logic.Expression.Op;
+import edu.washington.cs.knowitall.logic.Expression.Arg;
+import edu.washington.cs.knowitall.logic.Expression.Paren;
 
 /**
  * A logic expression engine that operates over user specified objects.
@@ -23,7 +26,7 @@ import edu.washington.cs.knowitall.logic.Tok.Arg;
  * @param  <E>  the type of the base expressions
  */
 public class LogicExpression<E> implements Predicate<E> {
-    private final Tok.Apply<E> expression;
+    private final Apply<E> expression;
     
     /***
      * 
@@ -33,20 +36,20 @@ public class LogicExpression<E> implements Predicate<E> {
      * @throws TokenizeLogicException
      * @throws CompileLogicException
      */
-    protected LogicExpression(String input, Function<String, Tok.Arg<E>> factory)
+    protected LogicExpression(String input, Function<String, Arg<E>> factory)
             throws TokenizeLogicException, CompileLogicException {
         // convert to tokens
-        List<Tok<E>> tokens = tokenize(input, factory);
+        List<Expression<E>> tokens = tokenize(input, factory);
         
         // put in reverse polish notation
-        List<Tok<E>> rpn = rpn(tokens);
+        List<Expression<E>> rpn = rpn(tokens);
         
         // compile the expression
         expression = compile(rpn);
     }
 
     public static <E> LogicExpression<E> compile(String input, 
-            Function<String, Tok.Arg<E>> factory) {
+            Function<String, Arg<E>> factory) {
         return new LogicExpression(input, factory);
     }
     
@@ -83,31 +86,31 @@ public class LogicExpression<E> implements Predicate<E> {
      * @param rpn a list of tokens in infix form.
      * @return an expression tree.
      */
-    public Tok.Apply<E> compile(List<Tok<E>> rpn) {
+    public Apply<E> compile(List<Expression<E>> rpn) {
         if (rpn.isEmpty()) {
             return null;
         }
         
-        Stack<Tok.Apply<E>> stack = new Stack<Tok.Apply<E>>();
-        for (Tok<E> tok : rpn) {
-            if (tok instanceof Tok.Arg<?>) {
-                stack.push((Tok.Arg<E>) tok);
-            } else if (tok instanceof Tok.Op<?>) {
+        Stack<Apply<E>> stack = new Stack<Apply<E>>();
+        for (Expression<E> tok : rpn) {
+            if (tok instanceof Arg<?>) {
+                stack.push((Arg<E>) tok);
+            } else if (tok instanceof Op<?>) {
                 try {
-                    if (tok instanceof Tok.Op.Mon<?>){
-                       Tok.Apply<E> sub = (Tok.Apply<E>) stack.pop();
+                    if (tok instanceof Op.Mon<?>){
+                       Apply<E> sub = (Apply<E>) stack.pop();
                        
-                        Tok.Op.Mon<E> mon = (Tok.Op.Mon<E>) tok;
+                        Op.Mon<E> mon = (Op.Mon<E>) tok;
                         
                         mon.sub = sub;
                         
                         stack.push(mon);
                     }
-                    if (tok instanceof Tok.Op.Bin<?>) {
-                        Tok.Apply<E> arg2 = (Tok.Apply<E>) stack.pop();
-                        Tok.Apply<E> arg1 = (Tok.Apply<E>) stack.pop();
+                    if (tok instanceof Op.Bin<?>) {
+                        Apply<E> arg2 = (Apply<E>) stack.pop();
+                        Apply<E> arg1 = (Apply<E>) stack.pop();
                         
-                        Tok.Op.Bin<E> bin = (Tok.Op.Bin<E>) tok;
+                        Op.Bin<E> bin = (Op.Bin<E>) tok;
                         
                         bin.left = arg1;
                         bin.right = arg2;
@@ -133,12 +136,12 @@ public class LogicExpression<E> implements Predicate<E> {
                     "Stack has zero elements after apply.");
         }
 
-        if (!(stack.peek() instanceof Tok.Apply<?>)) {
+        if (!(stack.peek() instanceof Apply<?>)) {
             throw new ApplyLogicException(
                     "Stack contains non-appliable tokens after apply: " + stack.toString());
         }
 
-        return ((Tok.Apply<E>) stack.pop());
+        return ((Apply<E>) stack.pop());
     }
     
     /***
@@ -157,15 +160,15 @@ public class LogicExpression<E> implements Predicate<E> {
      * @param apply the expression tree to search.
      * @param args the resulting list of arguments.
      */
-    private void getArgs(Tok.Apply<?> apply, List<String> args) {
-        if (apply instanceof Tok.Op.Bin<?>) {
-            Tok.Op.Bin<?> bin = (Tok.Op.Bin<?>) apply;
+    private void getArgs(Apply<?> apply, List<String> args) {
+        if (apply instanceof Op.Bin<?>) {
+            Op.Bin<?> bin = (Op.Bin<?>) apply;
             
             getArgs(bin.left, args);
             getArgs(bin.right, args);
         }
-        else if (apply instanceof Tok.Arg.Pred<?>) {
-            args.add(((Tok.Arg.Pred<?>)apply).getDescription());
+        else if (apply instanceof Arg.Pred<?>) {
+            args.add(((Arg.Pred<?>)apply).getDescription());
         }
     }
 
@@ -177,9 +180,9 @@ public class LogicExpression<E> implements Predicate<E> {
      *
      * @throws TokenizeLogicException
      */
-    public List<Tok<E>> tokenize(String input, Function<String, Tok.Arg<E>> factory) 
+    public List<Expression<E>> tokenize(String input, Function<String, Arg<E>> factory) 
     throws TokenizeLogicException {
-        List<Tok<E>> tokens = new ArrayList<Tok<E>>();
+        List<Expression<E>> tokens = new ArrayList<Expression<E>>();
 
         int i = 0;
         while (i < input.length()) {
@@ -191,28 +194,28 @@ public class LogicExpression<E> implements Predicate<E> {
                 continue;
             }
             else if (firstChar == '(') {
-                tokens.add(new Tok.Paren.L<E>());
+                tokens.add(new Paren.L<E>());
                 i += 1;
             } else if (firstChar == ')') {
-                tokens.add(new Tok.Paren.R<E>());
+                tokens.add(new Paren.R<E>());
                 i += 1;
             } else if (firstChar == '!') {
-                tokens.add(new Tok.Op.Mon.Not<E>());
+                tokens.add(new Op.Mon.Not<E>());
                 i += 1;
             } else if (firstChar == '&') {
-                tokens.add(new Tok.Op.Bin.And<E>());
+                tokens.add(new Op.Bin.And<E>());
                 i += 1;
             } else if (firstChar == '|') {
-                tokens.add(new Tok.Op.Bin.Or<E>());
+                tokens.add(new Op.Bin.Or<E>());
                 i += 1;
             } else {
                 Stack<Character> parens = new Stack<Character>();
                 
                 boolean quoted = false;
                 char quote = ' ';
-                int nextToken;
-                for (nextToken = 1; nextToken < substring.length(); nextToken++) {
-                    char c = substring.charAt(nextToken);
+                int nextExpressionen;
+                for (nextExpressionen = 1; nextExpressionen < substring.length(); nextExpressionen++) {
+                    char c = substring.charAt(nextExpressionen);
                     
                     if (c == '"' && (!quoted || quote == '"')) {
                         quoted = !quoted;
@@ -241,7 +244,7 @@ public class LogicExpression<E> implements Predicate<E> {
                     }
                 }
 
-                String token = substring.substring(0, nextToken).trim();
+                String token = substring.substring(0, nextExpressionen).trim();
                 
                 if (token.isEmpty()) {
                     throw new TokenizeLogicException("zero-length token found.");
@@ -261,48 +264,48 @@ public class LogicExpression<E> implements Predicate<E> {
      * @return a list of tokens in postfix (rpn) form.
      * @throws CompileLogicException
      */
-    public List<Tok<E>> rpn(List<Tok<E>> tokens)
+    public List<Expression<E>> rpn(List<Expression<E>> tokens)
             throws CompileLogicException {
         // intermediate storage
-        Stack<Tok<E>> stack = new Stack<Tok<E>>();
+        Stack<Expression<E>> stack = new Stack<Expression<E>>();
         
         // final rpn output
-        LinkedList<Tok<E>> output = new LinkedList<Tok<E>>();
+        LinkedList<Expression<E>> output = new LinkedList<Expression<E>>();
 
-        for (Tok<E> tok : tokens) {
-            if (tok instanceof Tok.Paren.L<?>) {
+        for (Expression<E> tok : tokens) {
+            if (tok instanceof Paren.L<?>) {
                 stack.push(tok);
-            } else if (tok instanceof Tok.Paren.R<?>) {
-                Tok<E> top;
+            } else if (tok instanceof Paren.R<?>) {
+                Expression<E> top;
                 do {
                     top = stack.pop();
 
-                    if (!(top instanceof Tok.Paren.L<?>)) {
+                    if (!(top instanceof Paren.L<?>)) {
                         output.offer(top);
                     }
 
-                } while (!(top instanceof Tok.Paren.L<?>));
+                } while (!(top instanceof Paren.L<?>));
 
-            } else if (tok instanceof Tok.Op.Mon<?>) {
+            } else if (tok instanceof Op.Mon<?>) {
                 stack.push(tok);
-            } else if (tok instanceof Tok.Op.Bin<?>) {
+            } else if (tok instanceof Op.Bin<?>) {
                 // higher precedence
-                while (!stack.isEmpty() && stack.peek() instanceof Tok.Op<?> 
-                        && ((Tok.Op<?>)stack.peek()).preceeds((Tok.Op<?>)tok)) {
+                while (!stack.isEmpty() && stack.peek() instanceof Op<?> 
+                        && ((Op<?>)stack.peek()).preceeds((Op<?>)tok)) {
                     output.offer(stack.pop());
                 }
                 
                 stack.push(tok);
-            } else if (tok instanceof Tok.Arg<?>) {
+            } else if (tok instanceof Arg<?>) {
                 output.offer(tok);
             }
         }
 
         // empty out items remaining ni the stack
         while (!stack.isEmpty()) {
-            Tok<E> top = stack.pop();
+            Expression<E> top = stack.pop();
 
-            if (top instanceof Tok.Paren.L<?> || top instanceof Tok.Paren.R<?>) {
+            if (top instanceof Paren.L<?> || top instanceof Paren.R<?>) {
                 throw new CompileLogicException("Unbalanced parentheses.");
             }
 

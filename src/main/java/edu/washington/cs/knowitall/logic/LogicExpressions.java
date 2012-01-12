@@ -18,10 +18,10 @@ class LogicExpressions {
      * the object it is applied to.
      */
     public static LogicExpression<String> trivial(final String expr) {
-        return new LogicExpression<String>(expr, new Function<String, Tok.Arg<String>>() {
+        return new LogicExpression<String>(expr, new Function<String, Expression.Arg<String>>() {
             @Override
-            public Tok.Arg<String> apply(final String string) {
-                return new Tok.Arg.Pred<String>(string) {
+            public Expression.Arg<String> apply(final String string) {
+                return new Expression.Arg.Pred<String>(string) {
                     @Override
                     public boolean apply(String entity) {
                         return "true".equals(string);

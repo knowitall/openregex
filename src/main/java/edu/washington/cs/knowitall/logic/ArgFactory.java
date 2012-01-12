@@ -11,17 +11,17 @@ import com.google.common.base.Function;
  *
  * @param <E>
  */
-public abstract class ArgFactory<E> implements Function<String, Tok.Arg<E>> {
+public abstract class ArgFactory<E> implements Function<String, Expression.Arg<E>> {
     /***
      * Converts the supplied string into a token.
      */
-    public abstract Tok.Arg<E> create(String string);
+    public abstract Expression.Arg<E> create(String string);
     
     /***
      * Method to satisfy abstract superclass.
      */
     @Override
-    public Tok.Arg<E> apply(String string) {
+    public Expression.Arg<E> apply(String string) {
         return this.create(string);
     }
 }
