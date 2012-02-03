@@ -290,6 +290,32 @@ public abstract class Match<E> {
         }
         
         /**
+         * @return the index of the first token in this group or -1
+         */
+        public int startIndex() {
+            int min = -1;
+            for (Token<E> token : this.tokens) {
+                if (min == -1 || token.index < min)
+                    min = token.index;
+            }
+
+            return min;
+        }
+        
+        /**
+         * @return the index of the last token in this group or -1
+         */
+        public int endIndex() {
+            int max = -1;
+            for (Token<E> token : this.tokens) {
+                if (token.index == -1 || token.index > max)
+                    max = token.index;
+            }
+
+            return max;
+        }
+        
+        /**
          * A string representation of the group.
          * This is a lighter-weight representation than toString.
          */
