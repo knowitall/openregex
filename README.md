@@ -85,7 +85,7 @@ the pattern and the sentence in example 2.
       regex.find(sentence).group("rel")  == "continent"
       regex.find(sentence).group("arg2") == "Antarctica"
 
-SUPPORTED CONSTRUCTS
+## Supported Constructs
 
 The regular expression library supports the following constructs.
 
@@ -106,7 +106,7 @@ however, alternation binds to its immediate neighbors.  This means that `<a>
 alternation arguments be made explicit with non-matching groups.
 
 
-Simple Java Example
+## Simple Java Example
 
 The NLP example is rather complex but it shows the power of OpenRegex.  For a
 simpler example, look at RegularExpressions.word.  This is a static factory
@@ -121,7 +121,7 @@ method in RegularExpression and specifying an expression with arg1.
         -Dexec.args="<the> <fat>* <cows> <are> <mooing> (?:<loudly>)?"
 
 
-Logic Expressions
+## Logic Expressions
 
 Included is an engine for parsing and evaluating logic expressions.  For
 example, you might want to extend the NLP regular expression language to be
@@ -159,7 +159,7 @@ Play around with logic expression by using the main method in LogicExpression.
   mvn exec:java -Dexec.mainClass=edu.washington.cs.knowitall.logic.LogicExpression
 
 
-Implementation
+## Implementation
 
 Regular expressions are evaluated using Thomson NFA, which is fast and not have
 the pathological cases that most regular exprsesion libraries have.  For more
@@ -168,7 +168,7 @@ http://swtch.com/~rsc/regexp/regexp1.html.  Future work may involve compiling
 NFAs to DFAs.
 
 
-Future Work
+## Future Work
 
 1.  Compile to DFA.
 2.  Use parser combinators for parsing regular expressions.
