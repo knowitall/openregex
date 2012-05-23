@@ -1,9 +1,11 @@
+# OpenRegex
+
 OpenRegex is written by Michael Schmitz at the Turing Center
 <http://turing.cs.washington.edu/>.  It is licensed under the full GPL3.
 Please see the LICENSE file for more details.
 
 
-INTRODUCTION
+## Introduction
 
 OpenRegex is an efficient and flexible token-based regular expression language
 and engine.  Most regular expression implementations are closed to run only
@@ -12,7 +14,7 @@ expressions, OpenRegex does not have this restriction.  OpenRegex is open to
 any sequences of user-defined objects.
 
 
-APPLIED TO NATURAL LANGUAGE
+## Applied to Natural Language
 
 For example, OpenRegex is used in the R2A2 extension to ReVerb, an open-domain
 information extractor, to determine argument boundaries.  In this case, tokens
@@ -58,31 +60,30 @@ We can try applying it to a couple of sentences.
 
 1.  The US president Barack Obama is travelling to Mexico.
 
-  regex.find(sentence).groups.get(0) == "The US president Barack Obama"
+    regex.find(sentence).groups.get(0) == "The US president Barack Obama"
 
 
 2.  If all the ice melted from the frigid Earth continent Antarctica, sea
     levels would rise hundreds of feet.
 
-  regex.find(sentence).groups.get(0) == "the frigid Earth continent Antarctica"
+    regex.find(sentence).groups.get(0) == "the frigid Earth continent Antarctica"
 
 
 We may want to pull out the text from certain parts of our match.  We can do
 this with either named or unnamed groups.  Consider the following new form of
 the pattern and the sentence in example 2.
 
-  (?:<string="a"> | <string="an"> | <string="the">)? <postag="JJ">*
-  (<arg1>:<postag='NNP'>+) (<rel>:<postag='NN'>+) (<arg2>:<postag='NNP'>+)
+      (?:<string="a"> | <string="an"> | <string="the">)? <postag="JJ">*
+      (<arg1>:<postag='NNP'>+) (<rel>:<postag='NN'>+) (<arg2>:<postag='NNP'>+)
 
-  regex.find(sentence).groups.get(0) == "the frigid Earth continent Antarctica"
-  regex.find(sentence).groups.get(1) == "Earth"
-  regex.find(sentence).groups.get(2) == "continent"
-  regex.find(sentence).groups.get(2) == "Antarctica"
+      regex.find(sentence).groups.get(0) == "the frigid Earth continent Antarctica"
+      regex.find(sentence).groups.get(1) == "Earth"
+      regex.find(sentence).groups.get(2) == "continent"
+      regex.find(sentence).groups.get(2) == "Antarctica"
 
-  regex.find(sentence).group("arg1") == "Earth"
-  regex.find(sentence).group("rel")  == "continent"
-  regex.find(sentence).group("arg2") == "Antarctica"
-
+      regex.find(sentence).group("arg1") == "Earth"
+      regex.find(sentence).group("rel")  == "continent"
+      regex.find(sentence).group("arg2") == "Antarctica"
 
 SUPPORTED CONSTRUCTS
 
@@ -99,13 +100,13 @@ The regular expression library supports the following constructs.
     (<name>:) named groups 
 
 Most of these operators work the same as in java.util.regex.  Presently,
-however, alternation binds to its immediate neighbors.  This means that "<a>
-<b> | <c>" means "<a> (?:<b> | <c>)" whereas in Java it would mean "(?:<a> <b>)
-| <c>".  This may change in a future release so it is advised that the
+however, alternation binds to its immediate neighbors.  This means that `<a>
+<b> | <c>` means `<a> (?:<b> | <c>)` whereas in Java it would mean `(?:<a> <b>)
+| <c>`.  This may change in a future release so it is advised that the
 alternation arguments be made explicit with non-matching groups.
 
 
-SIMPLE JAVA EXAMPLE
+Simple Java Example
 
 The NLP example is rather complex but it shows the power of OpenRegex.  For a
 simpler example, look at RegularExpressions.word.  This is a static factory
@@ -120,7 +121,7 @@ method in RegularExpression and specifying an expression with arg1.
         -Dexec.args="<the> <fat>* <cows> <are> <mooing> (?:<loudly>)?"
 
 
-LOGIC EXPRESSIONS
+Logic Expressions
 
 Included is an engine for parsing and evaluating logic expressions.  For
 example, you might want to extend the NLP regular expression language to be
@@ -158,7 +159,7 @@ Play around with logic expression by using the main method in LogicExpression.
   mvn exec:java -Dexec.mainClass=edu.washington.cs.knowitall.logic.LogicExpression
 
 
-IMPLEMENTATION
+Implementation
 
 Regular expressions are evaluated using Thomson NFA, which is fast and not have
 the pathological cases that most regular exprsesion libraries have.  For more
@@ -167,7 +168,7 @@ http://swtch.com/~rsc/regexp/regexp1.html.  Future work may involve compiling
 NFAs to DFAs.
 
 
-FUTURE WORK
+Future Work
 
 1.  Compile to DFA.
 2.  Use parser combinators for parsing regular expressions.
