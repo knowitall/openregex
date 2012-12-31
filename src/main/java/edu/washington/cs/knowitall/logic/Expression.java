@@ -17,7 +17,7 @@ public abstract class Expression<E> {
          */
         public abstract boolean apply(E entity);
     }
-    
+
     /**
      * An operator expression.
      */
@@ -28,7 +28,7 @@ public abstract class Expression<E> {
         public boolean preceeds(Op<?> that) {
             return this.precedence() < that.precedence();
         }
-        
+
         /**
          * The precedence of this operator.  A smaller number denotes higher
          * precedence.
@@ -36,13 +36,13 @@ public abstract class Expression<E> {
          * @returns  the precedence level of this operator
          */
         public abstract int precedence();
-        
+
         /**
          * An operator that takes a single argument, such as negation.
          */
         public static abstract class Mon<E> extends Op<E> {
             public Apply<E> sub;
-            
+
             public String toString(String symbol) {
                 if (sub == null) {
                     return symbol;
@@ -51,7 +51,7 @@ public abstract class Expression<E> {
                     return symbol + "(" + sub.toString() + ")";
                 }
             }
-            
+
             /**
              * The negation operator.
              */
@@ -59,7 +59,7 @@ public abstract class Expression<E> {
                 public String toString() {
                     return super.toString("!");
                 }
-                
+
                 @Override
                 public boolean apply(E entity) {
                     return !sub.apply(entity);
@@ -71,14 +71,14 @@ public abstract class Expression<E> {
                 }
             }
         }
-        
+
         /**
          * An operator that takes two arguments, such as disjunction.
          */
         public static abstract class Bin<E> extends Op<E> {
             public Apply<E> left;
             public Apply<E> right;
-            
+
             public String toString(String symbol) {
                 if (left == null || right == null) {
                     return symbol;
@@ -145,7 +145,7 @@ public abstract class Expression<E> {
 
             @Override
             public abstract boolean apply(E entity);
-            
+
             public String getDescription() {
                 return this.description;
             }
@@ -173,7 +173,7 @@ public abstract class Expression<E> {
             public boolean apply() {
                 return value;
             }
-            
+
             @Override
             public String toString() {
                 return Boolean.toString(this.value);

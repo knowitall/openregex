@@ -16,14 +16,14 @@ import edu.washington.cs.knowitall.regex.Expression.BaseExpression;
  * A class to represent a match. Each part of the regular expression is matched
  * to a sequence of tokens.   A match also stores information about the range
  * of tokens matched and the matching groups in the match.
- * 
+ *
  * @author Michael Schmitz <schmmd@cs.washington.edu>
- * 
+ *
  * @param <E>
  */
 public abstract class Match<E> {
     protected List<Match.Group<E>> pairs;
-    
+
     protected Match() {
       pairs = new ArrayList<Match.Group<E>>();
     }
@@ -74,15 +74,15 @@ public abstract class Match<E> {
     }
 
     public String toMultilineString() {
-        return Joiner.on("\n").join(Lists.transform(this.pairs, 
+        return Joiner.on("\n").join(Lists.transform(this.pairs,
           Functions.toStringFunction()));
     }
-    
+
     /**
      * @return the index of the first token matched.
      */
     public abstract int startIndex();
-    
+
     /**
      * @return the index of the last token matched.
      */
@@ -98,24 +98,24 @@ public abstract class Match<E> {
     public List<Group<E>> pairs() {
         return Collections.unmodifiableList(this.pairs);
     }
-    
+
     /**
      * @return all matching groups (named and unnamed).
      */
     public abstract List<Group<E>> groups();
-    
+
     /**
      * @return all matched tokens.
      */
     public abstract List<E> tokens();
-    
+
     /**
      * @return the number of tokens in the match.
      */
     public int length() {
         return this.tokens().size();
     }
-    
+
     /**
      * Retrieve a group by name.
      * @param name the name of the group to retrieve.
@@ -130,10 +130,10 @@ public abstract class Match<E> {
                 }
             }
         }
-        
+
         return null;
     }
-    
+
     /**
      * A match representation that has efficient method calls but is immutable.
      * @author Michael Schmitz <schmmd@cs.washington.edu>
@@ -144,7 +144,7 @@ public abstract class Match<E> {
         private final int startIndex;
         private final List<E> tokens;
         private final List<Group<E>> groups;
- 
+
         protected FinalMatch(Match<E> m) {
             super(m);
             this.startIndex = m.startIndex();
@@ -191,7 +191,7 @@ public abstract class Match<E> {
                     tokens.addAll(pair.tokens());
                 }
             }
-    
+
             return tokens;
         }
 
@@ -199,12 +199,12 @@ public abstract class Match<E> {
         public List<Group<E>> groups() {
             List<Group<E>> groups = new ArrayList<Group<E>>();
             for (Group<E> pair : this.pairs) {
-                if (pair.expr instanceof Expression.MatchingGroup<?> 
+                if (pair.expr instanceof Expression.MatchingGroup<?>
                 && !(pair.expr instanceof Expression.NonMatchingGroup<?>)) {
                     groups.add(pair);
                 }
             }
-    
+
             return groups;
         }
 
@@ -215,10 +215,10 @@ public abstract class Match<E> {
                     return pair.tokens.get(0).index;
                 }
             }
-            
+
             return -1;
         }
-        
+
         @Override
         public int endIndex() {
             for (Match.Group<E> pair : Lists.reverse(this.pairs)) {
@@ -226,7 +226,7 @@ public abstract class Match<E> {
                     return pair.tokens.get(0).index;
                 }
             }
-            
+
             return -1;
         }
     }
@@ -267,7 +267,7 @@ public abstract class Match<E> {
         public Group(Expression<E> expr) {
             this(expr, new ArrayList<Token<E>>());
         }
-        
+
         /**
          * Add tokens to the group.
          * @param group
@@ -275,7 +275,7 @@ public abstract class Match<E> {
         protected void addTokens(Group<E> group) {
             this.tokens.addAll(group.tokens);
         }
-        
+
         /**
          * @return the tokens matched.
          */
@@ -288,7 +288,7 @@ public abstract class Match<E> {
                         }
                     });
         }
-        
+
         /**
          * @return the index of the first token in this group or -1
          */
@@ -301,7 +301,7 @@ public abstract class Match<E> {
 
             return min;
         }
-        
+
         /**
          * @return the index of the last token in this group or -1
          */
@@ -314,7 +314,7 @@ public abstract class Match<E> {
 
             return max;
         }
-        
+
         /**
          * A string representation of the group.
          * This is a lighter-weight representation than toString.

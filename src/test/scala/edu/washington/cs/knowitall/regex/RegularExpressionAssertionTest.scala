@@ -19,26 +19,26 @@ class RegularExpressionAssertionTest extends Specification {
     (if (value) "" else "not ") + "be found in '" + tokens.mkString(" ") + "'" in {
       regex.apply(tokens) must beTrue.iff(value)
     }
-    
-  
+
+
   regex.toString should {
     evaluate(regex, matchTokens, true)
     evaluate(regex, matchTokens.tail, true)
     evaluate(regex, matchTokens.init, true)
   }
-  
+
   regexEnd.toString should {
     evaluate(regexEnd, matchTokens, false)
     evaluate(regexEnd, matchTokens.tail, false)
     evaluate(regexEnd, matchTokens.init, true)
   }
-  
+
   regexStart.toString should {
     evaluate(regexStart, matchTokens, false)
     evaluate(regexStart, matchTokens.tail, true)
     evaluate(regexStart, matchTokens.init, false)
   }
-  
+
   regexBoth.toString should {
     "match 'is a'" in {
       regexBoth.matches(List("is", "a")) must beTrue

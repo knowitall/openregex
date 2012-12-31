@@ -17,15 +17,15 @@ class LogicTest extends Specification with ScalaCheck {
     }
   }
 
-  def eval(expr: String,  f: (Boolean, Boolean) => Boolean) = 
+  def eval(expr: String,  f: (Boolean, Boolean) => Boolean) =
     "evaluate ("+expr+") correctly" in {
       check { (a: Boolean, b: Boolean) => compile(substitute(expr, a, b))(null) must_== f(a, b) }
     }
-  def eval(expr: String,  f: (Boolean, Boolean, Boolean) => Boolean) = 
+  def eval(expr: String,  f: (Boolean, Boolean, Boolean) => Boolean) =
     "evaluate ("+expr+") correctly" in {
       check { (a: Boolean, b: Boolean, c: Boolean) => compile(substitute(expr, a, b, c))(null) must_== f(a, b, c) }
     }
-  def eval(expr: String,  f: (Boolean, Boolean, Boolean, Boolean) => Boolean) = 
+  def eval(expr: String,  f: (Boolean, Boolean, Boolean, Boolean) => Boolean) =
     "evaluate ("+expr+") correctly" in {
       check { (a: Boolean, b: Boolean, c: Boolean, d: Boolean) => compile(substitute(expr, a, b, c, d))(null) must_== f(a, b, c, d) }
     }
@@ -63,6 +63,6 @@ class LogicTest extends Specification with ScalaCheck {
       val v = ('a' + i).toChar;
       expr.replace(v.toString(), arg.toString);
     }
-    
+
   def compile(logic: String) = LogicExpressions.trivial(logic)
 }

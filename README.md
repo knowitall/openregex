@@ -24,7 +24,7 @@ word, the part-of-speech tag, and the chunk tag).
     case class WordToken(string: String, postag: String, chunk: String)
 
 Now that we have defined our token, we can build up a sentence (a NLP library
-such as OpenNLP can help out here).  We will also need to define a way to 
+such as OpenNLP can help out here).  We will also need to define a way to
 translate each token in the expression (text between <angled brackets>) into
 an expression that can be applied to a word token.
 
@@ -90,14 +90,14 @@ the pattern and the sentence in example 2.
 The regular expression library supports the following constructs.
 
     | alternation
-    ? option  
+    ? option
     * Kleene-star
-    + plus 
+    + plus
     ^ beginning
     $ end
-    ()        matching groups 
+    ()        matching groups
     (?:)      non-matching groups
-    (<name>:) named groups 
+    (<name>:) named groups
 
 Most of these operators work the same as in java.util.regex.  Presently,
 however, alternation binds to its immediate neighbors.  This means that `<a>
@@ -116,8 +116,8 @@ considered.  This factory is used in the test cases.
 You can also play around with RegularExpressions.word by running the main
 method in RegularExpression and specifying an expression with arg1.
 
-    mvn compile exec:java 
-        -Dexec.mainClass=edu.washington.cs.knowitall.regex.RegularExpression 
+    mvn compile exec:java
+        -Dexec.mainClass=edu.washington.cs.knowitall.regex.RegularExpression
         -Dexec.args="<the> <fat>* <cows> <are> <mooing> (?:<loudly>)?"
 
 
@@ -136,7 +136,7 @@ rewriting the apply method in BaseExpression inside the compile method.
 Most of the code below existed before--now it's just moved outside the
 apply method.
 
-    val logic = LogicExpression.compile(value, 
+    val logic = LogicExpression.compile(value,
     new Function[String, Tok.Arg[WordToken]]() {
       override def apply(expr: String) = {
         new Arg.Pred[String](expr) {

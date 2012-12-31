@@ -11,7 +11,7 @@ class RegularExpressionPermutationTest extends Specification {
   case class TestCase(tokens: List[String], value: Boolean) extends Ordered[TestCase] {
     def extend(test: TestCase) =
       TestCase(tokens ::: test.tokens, value & test.value)
-    
+
     def compare(that: TestCase) = {
       val c1 = this.tokens.mkString(" ") compare that.tokens.mkString(" ")
       if (c1 != 0) c1
@@ -25,14 +25,14 @@ class RegularExpressionPermutationTest extends Specification {
       "match sentences correctly" in {
         val regex = RegularExpressions.word(permutation.mkString(" "))
 
-        { test: TestCase => 
+        { test: TestCase =>
           regex.matches(test.tokens) aka test.tokens.mkString("'", " ", "'") must beTrue.iff(test.value)
         }.forall(cases(regex))
       }
     }
   }
-  
-  def cases(regex: RegularExpression[String]) = { 
+
+  def cases(regex: RegularExpression[String]) = {
     def makeCases(exprs: List[Expression[String]]) = {
       def makeNext(expr: Expression[String]): (List[List[String]], List[List[String]]) = expr match {
         case star: Expression.Star[_] =>
@@ -49,16 +49,16 @@ class RegularExpressionPermutationTest extends Specification {
           (List(List(), List(source, source)), List(List(source)))
         case _ => (List(), List())
       }
-      
+
       def makeNextCase(expr: Expression[String]) = {
         val (falses, trues) = makeNext(expr)
         falses.map(TestCase(_, false)) ::: trues.map(TestCase(_, true))
       }
-    
-      def combine(tests: List[TestCase], nexts: List[TestCase]) = 
+
+      def combine(tests: List[TestCase], nexts: List[TestCase]) =
         if (nexts.isEmpty) tests
         else for (test <- tests; next <- nexts) yield (test extend next)
-        
+
       def rec(exprs: List[Expression[String]]): List[TestCase] = exprs match {
         case expr :: exprs =>
           val tests = makeNextCase(expr)
@@ -66,9 +66,9 @@ class RegularExpressionPermutationTest extends Specification {
           combine(tests, extentions)
         case Nil => List()
       }
-      
+
       SortedSet[TestCase]() ++ rec(exprs)
-    }   
+    }
 
     makeCases(regex.expressions.toList)
   }
