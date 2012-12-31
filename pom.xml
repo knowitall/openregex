@@ -15,8 +15,8 @@
   <url>http://knowitall.github.com/openregex/</url>
   <licenses>
     <license>
-      <name>GPL 3</name>
-      <url>http://gplv3.fsf.org/</url>
+      <name>LGPL (GNU Lesser General Public License)</name>
+      <url>http://www.gnu.org/licenses/lgpl.html</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
