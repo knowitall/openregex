@@ -8,7 +8,7 @@
   </parent>
   <groupId>edu.washington.cs.knowitall</groupId>
   <artifactId>openregex</artifactId>
-  <version>1.0.3</version>
+  <version>1.0.4-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>openregex</name>
   <description>OpenRegex is an efficient and flexible library for running regular expressions over sequences of user-defined objects.</description>
