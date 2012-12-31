@@ -1,7 +1,7 @@
 # OpenRegex
 
 OpenRegex is written by Michael Schmitz at the Turing Center
-<http://turing.cs.washington.edu/>.  It is licensed under the full GPL3.
+<http://turing.cs.washington.edu/>.  It is licensed under the lesser GPL.
 Please see the LICENSE file for more details.
 
 
