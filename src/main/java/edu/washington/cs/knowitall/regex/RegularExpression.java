@@ -34,6 +34,15 @@ public class RegularExpression<E> implements Predicate<List<E>> {
         this.auto = this.build(this.expressions);
     }
 
+    public static <E> RegularExpression<E> compile(List<Expression<E>> expressions) {
+        return new RegularExpression<E>(expressions);
+    }
+
+    private RegularExpression(List<Expression<E>> expressions) {
+        this.expressions = expressions;
+        this.auto = this.build(this.expressions);
+    }
+
     public static <E> RegularExpression<E> compile(String expression,
             Function<String, BaseExpression<E>> factory) {
         return new RegularExpression<E>(expression, factory);
