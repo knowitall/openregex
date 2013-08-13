@@ -216,6 +216,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
 
         final Pattern whitespacePattern = Pattern.compile("\\s+");
         final Pattern unaryPattern = Pattern.compile("[*?+]");
+        final Pattern minMaxPattern = Pattern.compile("\\{(\\d+),(\\d+)\\}");
         final Pattern binaryPattern = Pattern.compile("[|]");
 
         List<String> tokens = new ArrayList<String>();
@@ -354,6 +355,20 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                 else {
                     throw new IllegalStateException();
                 }
+
+                expressions.add(expr);
+
+                start = matcher.end();
+            }
+            // min/max operator "{x,y}"
+            else if ((matcher = minMaxPattern.matcher(string))
+                    .region(start, string.length()).lookingAt()) {
+                int minOccurrences = Integer.parseInt(matcher.group(1));
+                int maxOccurrences = Integer.parseInt(matcher.group(2));
+
+                // pop the last expression and add operator
+                Expression<E> base = expressions.remove(expressions.size() - 1);
+                Expression<E> expr = new Expression.MinMax<E>(base, minOccurrences, maxOccurrences);
 
                 expressions.add(expr);
 
