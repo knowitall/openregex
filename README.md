@@ -105,6 +105,10 @@ however, alternation binds to its immediate neighbors.  This means that `<a>
 | <c>`.  This may change in a future release so it is advised that the
 alternation arguments be made explicit with non-matching groups.
 
+All operators are greedy, and there are no non-greedy counterparts.
+Backreferences are not supported because the underlying representation only
+supports regular languages (backreferences are not regular).
+
 
 ## Simple Java Example
 
