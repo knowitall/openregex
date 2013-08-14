@@ -7,7 +7,7 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class RegularExpressionTest extends Specification {
-  val regex = RegularExpressions.word("<this> <is> (((?:(?: <a> <very>+) | <an>) <amazing>? <new>) | (?: <a> <many>* <centuries> <old>)) <test>")
+  val regex = RegularExpressions.word("<this> <is> (((?:(?: <a> <very>+) | <an>) <amazing>? <new>{1,3}) | (?: <a> <many>* <centuries> <old>)) <test>")
 
   regex.toString should {
     "match" in {
@@ -16,6 +16,10 @@ class RegularExpressionTest extends Specification {
       regex.apply("this is an amazing new test".split(" ").toList) must beTrue
       regex.apply("this is a centuries old test".split(" ").toList) must beTrue
       regex.apply("this is a many many centuries old test".split(" ").toList) must beTrue
+      regex.apply("this is a very new test".split(" ").toList) must beTrue
+      regex.apply("this is a very new new test".split(" ").toList) must beTrue
+      regex.apply("this is a very new new new test".split(" ").toList) must beTrue
+      regex.apply("this is a very new new new new test".split(" ").toList) must beFalse
     }
 
     "not match" in {

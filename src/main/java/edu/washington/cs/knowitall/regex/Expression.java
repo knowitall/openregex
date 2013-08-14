@@ -308,6 +308,85 @@ public interface Expression<E> extends Predicate<E> {
     }
 
     /**
+     * A minimum to maximum number of occurrences of the enclosed expression.
+     *     {@code <foo>{1,3}}
+     * @author Daniel Naber
+     *
+     * @param <E>
+     */
+    public static class MinMax<E> implements Expression<E> {
+        Expression<E> expr;
+        final int minOccurrences;
+        final int maxOccurrences;
+
+        /**
+         * @param minOccurrences minimum occurrences, must be >= 0
+         * @param maxOccurrences maximum occurrences, must be >= 1 - you should prefer small values,
+         *                       as the use of large values will create a large automaton that takes a lot of memory
+         */
+        public MinMax(Expression<E> expr, int minOccurrences, int maxOccurrences) {
+            this.expr = expr;
+            if (minOccurrences < 0 || maxOccurrences < 1) {
+                throw new IllegalArgumentException("minOccurrences must be >= 0 and maxOccurrences must be >= 1: "
+                        + minOccurrences + ", " + maxOccurrences);
+            }
+            if (minOccurrences > maxOccurrences) {
+                throw new IllegalArgumentException("minOccurrences must be <= maxOccurrences: "
+                        + minOccurrences + " > " + maxOccurrences);
+            }
+            this.minOccurrences = minOccurrences;
+            this.maxOccurrences = maxOccurrences;
+        }
+
+        @Override
+        public boolean apply(E entity) {
+            return this.expr.apply(entity);
+        }
+
+        @Override
+        public String toString() {
+            return this.expr.toString() + "{" + minOccurrences + "," + maxOccurrences + "}";
+        }
+
+        /**
+         * Convert the expression into a NFA.
+         */
+        @Override
+        public Automaton<E> build() {
+            Automaton<E> auto = new Automaton<E>(this);
+
+            List<Automaton<E>> subAutos = new ArrayList<Automaton<E>>();
+            int numberOfNodes = maxOccurrences;
+            for (int i = 0; i < numberOfNodes; i++) {
+                Automaton<E> sub = this.expr.build();
+                subAutos.add(sub);
+            }
+
+            // attach the first sub automaton
+            auto.start.connect(subAutos.get(0).start);
+
+            // attach the sub automatons among themselves and with the end
+            for (int i = 0; i < subAutos.size(); i++) {
+                Automaton<E> sub = subAutos.get(i);
+                if (i >= minOccurrences - 1) {
+                    sub.end.connect(auto.end);
+                }
+                if (i < subAutos.size() - 1) {
+                    Automaton<E> nextSub = subAutos.get(i + 1);
+                    sub.end.connect(nextSub.start);
+                }
+            }
+
+            if (minOccurrences == 0) {
+                // skip it completely
+                auto.start.connect(auto.end);
+            }
+
+            return auto;
+        }
+    }
+
+    /**
      * An expression with no subexpression that is evaluated against a token
      * using the supplied delegate.
      * @author Michael Schmitz <schmmd@cs.washington.edu>

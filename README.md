@@ -95,6 +95,7 @@ The regular expression library supports the following constructs.
     + plus
     ^ beginning
     $ end
+    {x,y}     match at least x but not more than y times
     ()        matching groups
     (?:)      non-matching groups
     (<name>:) named groups
@@ -160,14 +161,14 @@ apply method.
 
 Play around with logic expression by using the main method in LogicExpression.
 
-  mvn exec:java -Dexec.mainClass=edu.washington.cs.knowitall.logic.LogicExpression
+    mvn exec:java -Dexec.mainClass=edu.washington.cs.knowitall.logic.LogicExpression
 
 
 ## Implementation
 
-Regular expressions are evaluated using Thomson NFA, which is fast and not have
-the pathological cases that most regular exprsesion libraries have.  For more
-information about Thomson NFA in comparison to recurseive backtracking, read
+Regular expressions are evaluated using Thomson NFA, which is fast and does not have
+the pathological cases that most regular expression libraries have.  For more
+information about Thomson NFA in comparison to recursive backtracking, read
 http://swtch.com/~rsc/regexp/regexp1.html.  Future work may involve compiling
 NFAs to DFAs.
 
