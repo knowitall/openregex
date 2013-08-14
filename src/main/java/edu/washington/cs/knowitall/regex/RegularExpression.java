@@ -363,8 +363,8 @@ public class RegularExpression<E> implements Predicate<List<E>> {
             // min/max operator "{x,y}"
             else if ((matcher = minMaxPattern.matcher(string))
                     .region(start, string.length()).lookingAt()) {
-                int minOccurrences = Integer.parseInt(matcher.group(1));
-                int maxOccurrences = Integer.parseInt(matcher.group(2));
+                short minOccurrences = Short.parseShort(matcher.group(1));
+                short maxOccurrences = Short.parseShort(matcher.group(2));
 
                 // pop the last expression and add operator
                 Expression<E> base = expressions.remove(expressions.size() - 1);
