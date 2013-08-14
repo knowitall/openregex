@@ -71,10 +71,6 @@ public class MinMaxTest {
     }
 
     private RegularExpression<String> getAbcRegex(int min, int max) {
-        return getAbcRegex((short)min, (short)max);
-    }
-
-    private RegularExpression<String> getAbcRegex(short min, short max) {
         Expression<String> wordA = RegularExpressions.word("<a>").expressions.get(0);
         Expression<String> wordB = RegularExpressions.word("<b>").expressions.get(0);
         Expression<String> wordC = RegularExpressions.word("<c>").expressions.get(0);

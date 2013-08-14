@@ -321,10 +321,9 @@ public interface Expression<E> extends Predicate<E> {
 
         /**
          * @param minOccurrences minimum occurrences, must be >= 0
-         * @param maxOccurrences maximum occurrences, must be >= 1, you should prefer small values, as
-         *                       the use of large values will create a large automaton that takes a lot of memory
+         * @param maxOccurrences maximum occurrences, must be >= 1
          */
-        public MinMax(Expression<E> expr, short minOccurrences, short maxOccurrences) {
+        public MinMax(Expression<E> expr, int minOccurrences, int maxOccurrences) {
             this.expr = expr;
             if (minOccurrences < 0 || maxOccurrences < 1) {
                 throw new IllegalArgumentException("minOccurrences must be >= 0 and maxOccurrences must be >= 1: "
