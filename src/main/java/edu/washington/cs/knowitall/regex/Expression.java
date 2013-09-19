@@ -184,7 +184,7 @@ public interface Expression<E> extends Predicate<E> {
         @Override
         public int minMatchingLength() {
             int left = this.expr1.minMatchingLength();
-            int right = this.expr1.minMatchingLength();
+            int right = this.expr2.minMatchingLength();
             if (left < right)
               return left;
             else
