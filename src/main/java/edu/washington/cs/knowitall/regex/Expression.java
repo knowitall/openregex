@@ -19,6 +19,8 @@ public interface Expression<E> extends Predicate<E> {
 
     public Automaton<E> build();
 
+    public int minMatchingLength();
+
     /**
      * Represents a matching group that is referred to by order number.
      *     {@code (<foo> <bar>+)}
@@ -83,6 +85,15 @@ public interface Expression<E> extends Predicate<E> {
             prev.connect(auto.end);
 
             return auto;
+        }
+
+        @Override
+        public int minMatchingLength() {
+            int len = 0;
+            for (Expression<E> expr : this.expressions) {
+                len += expr.minMatchingLength();
+            }
+            return len;
         }
     }
 
@@ -169,6 +180,16 @@ public interface Expression<E> extends Predicate<E> {
 
             return auto;
         }
+
+        @Override
+        public int minMatchingLength() {
+            int left = this.expr1.minMatchingLength();
+            int right = this.expr2.minMatchingLength();
+            if (left < right)
+              return left;
+            else
+              return right;
+        }
     }
 
     /**
@@ -216,6 +237,11 @@ public interface Expression<E> extends Predicate<E> {
 
             return auto;
         }
+
+        @Override
+        public int minMatchingLength() {
+            return 0;
+        }
     }
 
     /**
@@ -261,6 +287,11 @@ public interface Expression<E> extends Predicate<E> {
 
             return auto;
         }
+
+        @Override
+        public int minMatchingLength() {
+            return 1;
+        }
     }
 
     /**
@@ -304,6 +335,11 @@ public interface Expression<E> extends Predicate<E> {
             auto.start.connect(auto.end);
 
             return auto;
+        }
+
+        @Override
+        public int minMatchingLength() {
+            return 0;
         }
     }
 
@@ -384,6 +420,11 @@ public interface Expression<E> extends Predicate<E> {
 
             return auto;
         }
+
+        @Override
+        public int minMatchingLength() {
+            return this.minOccurrences;
+        }
     }
 
     /**
@@ -421,6 +462,11 @@ public interface Expression<E> extends Predicate<E> {
 
             return auto;
         }
+
+        @Override
+        public int minMatchingLength() {
+            return 1;
+        }
     }
 
     /**
@@ -448,6 +494,11 @@ public interface Expression<E> extends Predicate<E> {
             auto.start.connect(auto.end, this);
 
             return auto;
+        }
+
+        @Override
+        public int minMatchingLength() {
+            return 0;
         }
     }
 
