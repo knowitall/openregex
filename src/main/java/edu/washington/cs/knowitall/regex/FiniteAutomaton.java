@@ -54,24 +54,30 @@ public class FiniteAutomaton {
         }
 
         public Match.FinalMatch<E> lookingAt(List<E> tokens, int startIndex) {
-            List<E> sublist = tokens.subList(startIndex, tokens.size());
-
-            Step<E> path = this.evaluate(sublist, startIndex == 0);
-            if (path == null) {
+            if (tokens.size() - startIndex - this.minMatchingLength() < 0) {
+                // don't try if we can't possible match
                 return null;
             }
+            else {
+                List<E> sublist = tokens.subList(startIndex, tokens.size());
 
-            // build list of edges
-            List<AbstractEdge<E>> edges = new ArrayList<AbstractEdge<E>>();
-            while (path.state != this.start) {
-                edges.add(path.path);
-                path = path.prev;
+                Step<E> path = this.evaluate(sublist, startIndex == 0);
+                if (path == null) {
+                    return null;
+                }
+
+                // build list of edges
+                List<AbstractEdge<E>> edges = new ArrayList<AbstractEdge<E>>();
+                while (path.state != this.start) {
+                    edges.add(path.path);
+                    path = path.prev;
+                }
+
+                Match.IntermediateMatch<E> match = new Match.IntermediateMatch<E>();
+                buildMatch(sublist.iterator(), null, new AtomicInteger(startIndex), this.start,
+                           Lists.reverse(edges).iterator(), match);
+                return new Match.FinalMatch<E>(match);
             }
-
-            Match.IntermediateMatch<E> match = new Match.IntermediateMatch<E>();
-            buildMatch(sublist.iterator(), null, new AtomicInteger(startIndex), this.start,
-                       Lists.reverse(edges).iterator(), match);
-            return new Match.FinalMatch<E>(match);
         }
 
         /**
