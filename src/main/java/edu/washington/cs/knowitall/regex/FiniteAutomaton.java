@@ -53,6 +53,9 @@ public class FiniteAutomaton {
             return lookingAt(tokens, 0);
         }
 
+        /**
+         * @return null if no match, otherwise a representation of the match
+         */
         public Match.FinalMatch<E> lookingAt(List<E> tokens, int startIndex) {
             if (tokens.size() - startIndex - this.minMatchingLength() < 0) {
                 // don't try if we can't possible match
