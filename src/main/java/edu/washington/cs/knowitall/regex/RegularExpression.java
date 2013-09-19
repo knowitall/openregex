@@ -131,7 +131,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
      */
     public Match<E> find(List<E> tokens, int start) {
         Match<E> match;
-        for (int i = start; i < tokens.size(); i++) {
+        for (int i = start; i <= tokens.size() - auto.minMatchingLength(); i++) {
             match = this.lookingAt(tokens, i);
             if (match != null) {
                 return match;

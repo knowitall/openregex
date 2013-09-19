@@ -45,6 +45,10 @@ public class FiniteAutomaton {
             return this.evaluate(tokens, true) != null;
         }
 
+        public int minMatchingLength() {
+            return start.minMatchingLength();
+        }
+
         public Match.FinalMatch<E> lookingAt(List<E> tokens) {
             return lookingAt(tokens, 0);
         }
@@ -363,6 +367,10 @@ public class FiniteAutomaton {
     public static class StartState<E> extends TerminusState<E> {
         public StartState(Expression<E> expression) {
             super(expression);
+        }
+
+        public int minMatchingLength() {
+            return this.expression.minMatchingLength();
         }
     }
 
