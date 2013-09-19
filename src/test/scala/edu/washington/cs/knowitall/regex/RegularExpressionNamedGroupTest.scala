@@ -10,12 +10,16 @@ class RegularExpressionNamedGroupTest extends Specification {
   val regex = RegularExpressions.word("(<subject>: <I> | (?: <The> (<subjadj>: <crazy>)? <Mariners>)) <know> <all> <of> (<poss>: <her> | (?: <the> (<possadj>: <dirty>?) <King> <'s>)) <secrets>")
 
   regex.toString should {
-    "match" in {
-      regex.apply("I know all of her secrets".split(" ").toList) must beTrue
-      regex.apply("The Mariners know all of her secrets".split(" ").toList) must beTrue
-      regex.apply("The Mariners know all of the dirty King 's secrets".split(" ").toList) must beTrue
-      regex.apply("The Mariners know all of the King 's secrets".split(" ").toList) must beTrue
-      regex.apply("The crazy Mariners know all of the King 's secrets".split(" ").toList) must beTrue
+    val matches = List("I know all of her secrets",
+      "The Mariners know all of her secrets",
+      "The Mariners know all of the dirty King 's secrets",
+      "The Mariners know all of the King 's secrets",
+      "The crazy Mariners know all of the King 's secrets")
+
+    matches.foreach { m =>
+      "match against " + m in {
+        regex.apply(m.split(" ").toList) must beTrue
+      }
     }
 
     "yield the correct groups" in {

@@ -16,7 +16,7 @@ class RegularExpressionAssertionTest extends Specification {
   val regexBoth = RegularExpressions.word(regexTokens.mkString(" "))
 
   def evaluate(regex: RegularExpression[String], tokens: List[String], value: Boolean) =
-    (if (value) "" else "not ") + "be found in '" + tokens.mkString(" ") + "'" in {
+    (if (value) "" else "not ") + "be found in '" + tokens.mkString(" ") + "': " in {
       regex.apply(tokens) must beTrue.iff(value)
     }
 
