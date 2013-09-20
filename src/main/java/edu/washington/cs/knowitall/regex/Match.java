@@ -79,12 +79,12 @@ public abstract class Match<E> {
     }
 
     /**
-     * @return the index of the first token matched.
+     * @return the index of the first token matched (inclusive start).
      */
     public abstract int startIndex();
 
     /**
-     * @return the index of the last token matched.
+     * @return the index one past of the last token matched (exclusive end).
      */
     public abstract int endIndex();
 
