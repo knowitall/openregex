@@ -56,11 +56,11 @@ abstract public class LogicExpression<E> implements Predicate<E> {
      */
     public abstract Arg<E> factory(String argument);
 
-    private final static Pattern doubleQuoteStringLiteralRegex =
+    public final static Pattern doubleQuoteStringLiteralRegex =
             Pattern.compile("\"" + "((?:[^\"\\p{Cntrl}\\\\]|\\\\[\\\\'\"bfnrt]|\\\\u[a-fA-F0-9]{4})*)" + "\"");
-    private final static Pattern singleQuoteStringLiteralRegex =
+    public final static Pattern singleQuoteStringLiteralRegex =
             Pattern.compile("'" + "([^']*)" + "'");
-    private final static Pattern regexLiteralRegex =
+    public final static Pattern regexLiteralRegex =
             Pattern.compile("/" + "((?:[^/\\\\]*(?:\\\\)*(?:\\\\/)*)*)" + "/");
     private final static List<Pattern> literalPatterns = Lists.newArrayList(
             doubleQuoteStringLiteralRegex, singleQuoteStringLiteralRegex,
@@ -170,7 +170,7 @@ abstract public class LogicExpression<E> implements Predicate<E> {
      * @param rpn a list of tokens in infix form.
      * @return an expression tree.
      */
-    public Apply<E> compile(List<Expression<E>> rpn) {
+    public static <E> Apply<E> compile(List<Expression<E>> rpn) {
         if (rpn.isEmpty()) {
             return null;
         }
