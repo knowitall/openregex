@@ -25,27 +25,94 @@ import edu.washington.cs.knowitall.regex.RegexException.TokenizationRegexExcepti
  *
  * @param  <E>  the type of the sequence elements
  */
-public class RegularExpression<E> implements Predicate<List<E>> {
+public abstract class RegularExpression<E> implements Predicate<List<E>> {
     public final List<Expression<E>> expressions;
     public final Automaton<E> auto;
 
-    protected RegularExpression(String expression, Function<String, BaseExpression<E>> factory) {
-        this.expressions = tokenize(expression, factory);
+    public RegularExpression(String expression) {
+        this.expressions = tokenize(expression);
         this.auto = this.build(this.expressions);
     }
 
-    public static <E> RegularExpression<E> compile(List<Expression<E>> expressions) {
-        return new RegularExpression<E>(expressions);
-    }
-
-    private RegularExpression(List<Expression<E>> expressions) {
+    public RegularExpression(List<Expression<E>> expressions) {
         this.expressions = expressions;
         this.auto = this.build(this.expressions);
     }
 
-    public static <E> RegularExpression<E> compile(String expression,
-            Function<String, BaseExpression<E>> factory) {
-        return new RegularExpression<E>(expression, factory);
+    /***
+     * The factory method creates an expression from the supplied token string.
+     * @param  token  a string representation of a token
+     * @return  an evaluatable representation of a token
+     */
+    public abstract BaseExpression<E> factory(String token);
+
+    /***
+     * Read a token from the remaining text and return it.
+     *
+     * This is a default implementation that is overridable.
+     * In the default implementation, the starting and ending
+     * token characters are not escapable.
+     *
+     * If this implemenation is overridden, A token MUST ALWAYS
+     * start with '<' or '[' and end with '>' or ']'.
+     *
+     * @param remaining
+     * @return
+     */
+    public String readToken(String remaining) {
+        int start = 0;
+        char c = remaining.charAt(0);
+
+        int end;
+        if (c == '<') {
+            end = indexOfClose(remaining, start, '<', '>');
+        }
+        else if (c == '[' ){
+            end = indexOfClose(remaining, start, '[', ']');
+        }
+        else {
+            throw new IllegalStateException();
+        }
+
+        // make sure we found the end
+        if (end == -1) {
+            throw new TokenizationRegexException(
+                    "bad token. Non-matching brackets (<> or []): " + start
+                    + ":\"" + remaining.substring(start) + "\"");
+        }
+
+        String token = remaining.substring(start, end + 1);
+        return token;
+    }
+
+    /***
+     * Create a regular expression without tokenization support.
+     * @param expressions
+     * @return
+     */
+    public static <E> RegularExpression<E> compile(List<Expression<E>> expressions) {
+        return new RegularExpression<E>(expressions) {
+            @Override
+            public BaseExpression<E> factory(String token) {
+                throw new IllegalArgumentException();
+            }
+        };
+    }
+
+    /***
+     * Create a regular expression from the specified string.
+     * @param expression
+     * @param factoryDelegate
+     * @return
+     */
+    public static <E> RegularExpression<E> compile(final String expression,
+            final Function<String, BaseExpression<E>> factoryDelegate) {
+        return new RegularExpression<E>(expression) {
+            @Override
+            public BaseExpression<E> factory(String token) {
+                return factoryDelegate.apply(token);
+            }
+        };
     }
 
     @Override
@@ -210,8 +277,7 @@ public class RegularExpression<E> implements Predicate<List<E>> {
      *            angled brackets.
      * @return
      */
-    public List<Expression<E>> tokenize(String string,
-            Function<String, BaseExpression<E>> factory) {
+    public List<Expression<E>> tokenize(String string) {
         List<Expression<E>> expressions = new ArrayList<Expression<E>>();
 
         final Pattern whitespacePattern = Pattern.compile("\\s+");
@@ -254,51 +320,32 @@ public class RegularExpression<E> implements Predicate<List<E>> {
                     if ((matcher = namedPattern.matcher(group)).matches()) {
                         String groupName = matcher.group(1);
                         group = matcher.group(2);
-                        List<Expression<E>> groupExpressions = this.tokenize(group,
-                                factory);
+                        List<Expression<E>> groupExpressions = this.tokenize(group);
                         expressions.add(new Expression.NamedGroup<E>(groupName, groupExpressions));
                     }
                     // unnamed group
                     else if ((matcher = unnamedPattern.matcher(group)).matches()) {
                         group = matcher.group(1);
-                        List<Expression<E>> groupExpressions = this.tokenize(group,
-                                factory);
+                        List<Expression<E>> groupExpressions = this.tokenize(group);
                         expressions.add(new Expression.NonMatchingGroup<E>(groupExpressions));
                     }
                     // group (matching)
                     else {
-                        List<Expression<E>> groupExpressions = this.tokenize(group,
-                                factory);
+                        List<Expression<E>> groupExpressions = this.tokenize(group);
                         expressions.add(new Expression.MatchingGroup<E>(groupExpressions));
                     }
                 }
 
                 // token
                 else if (c == '<' || c == '[') {
-                    int end;
-                    if (c == '<') {
-                        end = indexOfClose(string, start, '<', '>');
-                    }
-                    else if (c == '[' ){
-                        end = indexOfClose(string, start, '[', ']');
-                    }
-                    else {
-                        throw new IllegalStateException();
-                    }
-
-                    // make sure we found the end
-                    if (end == -1) {
-                        throw new TokenizationRegexException(
-                                "bad token. Non-matching brackets (<> or []): " + start
-                                + ":\"" + string.substring(start) + "\"");
-                    }
-
-                    String token = string.substring(start + 1, end);
+                    String token = readToken(string.substring(start));
                     try {
-                        BaseExpression<E> base = factory.apply(token);
+                        // strip off enclosing characters
+                        String tokenInside = token.substring(1, token.length() - 1);
+                        BaseExpression<E> base = factory(tokenInside);
                         expressions.add(base);
 
-                        start = end + 1;
+                        start += token.length();
                     }
                     catch (Exception e) {
                         throw new TokenizationRegexException("error parsing token: " + token, e);
@@ -395,17 +442,6 @@ public class RegularExpression<E> implements Predicate<List<E>> {
     }
 
     /**
-     * Split the string into an array of regular expression tokens (<...>).
-     *
-     * @param expression
-     * @return
-     */
-    public List<String> split(String expression) {
-        final Pattern tokenPattern = Pattern.compile("\\(?<.*?>\\)?[*?+]?");
-        return splitInto(expression, tokenPattern);
-    }
-
-    /**
      * An interactive program that compiles a word-based regular expression
      * specified in arg1 and then reads strings from stdin, evaluating them
      * against the regular expression.
@@ -425,39 +461,8 @@ public class RegularExpression<E> implements Predicate<List<E>> {
             System.out.println("matches:  " + regex.matches(Arrays.asList(line.split("\\s+"))));
             System.out.println();
         }
-    }
 
-    private static List<String> splitInto(String string, Pattern pattern) {
-        Matcher matcher = pattern.matcher(string);
-
-        List<String> parts = new ArrayList<String>();
-
-        int i = 0;
-        while (matcher.find(i)) {
-            if (i < matcher.start()) {
-                throw new IllegalArgumentException(
-                        "Could not split string into specified pattern.  Found matches '"
-                        + Joiner.on(", ").join(parts) + "' and then '" + string.charAt(i)
-                        + "' found between matches.");
-            }
-
-            if (matcher.groupCount() > 0) {
-                parts.add(matcher.group(1));
-            }
-            else {
-                parts.add(matcher.group(0));
-            }
-
-            i = matcher.end();
-        }
-
-        if (i != string.length()) {
-            throw new IllegalArgumentException(
-                    "Pattern does not extend to end of string: "
-                    + i + "/" + string.length());
-        }
-
-        return parts;
+        scan.close();
     }
 
     private static int indexOfClose(String string, int start, char open, char close) {

@@ -1,7 +1,5 @@
 package edu.washington.cs.knowitall.logic;
 
-import com.google.common.base.Function;
-
 /**
  * Static factories for logic expressions over basic objects.
  *
@@ -9,24 +7,25 @@ import com.google.common.base.Function;
  */
 class LogicExpressions {
     /**
-     * Logic expressions where "true" evaluates to true and "false" evaluates
-     * to false.  For example:
+     * Logic expressions where "true" evaluates to true and "false" evaluates to
+     * false. For example:
      *
-     *   (true | false) & true
+     * (true | false) & true
      *
-     * This logic expression is trivial because it's value is independent of
-     * the object it is applied to.
+     * This logic expression is trivial because it's value is independent of the
+     * object it is applied to.
      */
     public static LogicExpression<String> trivial(final String expr) {
-        return new LogicExpression<String>(expr, new Function<String, Expression.Arg<String>>() {
+        return new LogicExpression<String>(expr) {
             @Override
-            public Expression.Arg<String> apply(final String string) {
+            public Expression.Arg<String> factory(final String string) {
                 return new Expression.Arg.Pred<String>(string) {
                     @Override
                     public boolean apply(String entity) {
                         return "true".equals(string);
                     }
                 };
-            }});
+            }
+        };
     }
 }

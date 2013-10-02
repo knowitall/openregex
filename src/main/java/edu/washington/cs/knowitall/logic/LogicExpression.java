@@ -25,21 +25,19 @@ import edu.washington.cs.knowitall.logic.Expression.Paren;
  *
  * @param  <E>  the type of the base expressions
  */
-public class LogicExpression<E> implements Predicate<E> {
+abstract public class LogicExpression<E> implements Predicate<E> {
     private final Apply<E> expression;
 
     /***
      *
      * @param input an infix representation of the logic expression.
-     * @param factory a delegate to convert the string representation of an
-     * expression to a token.
      * @throws TokenizeLogicException
      * @throws CompileLogicException
      */
-    protected LogicExpression(String input, Function<String, Arg<E>> factory)
+    protected LogicExpression(String input)
             throws TokenizeLogicException, CompileLogicException {
         // convert to tokens
-        List<Expression<E>> tokens = tokenize(input, factory);
+        List<Expression<E>> tokens = tokenize(input);
 
         // put in reverse polish notation
         List<Expression<E>> rpn = rpn(tokens);
@@ -48,11 +46,80 @@ public class LogicExpression<E> implements Predicate<E> {
         expression = compile(rpn);
     }
 
-    public static <E> LogicExpression<E> compile(String input,
-            Function<String, Arg<E>> factory) {
-        return new LogicExpression<E>(input, factory);
+    /***
+     * The factory method creates an argument from the supplied token string.
+     * @param  argument  a string representation of a token
+     * @return  an evaluatable representation of a token
+     */
+    public abstract Arg<E> factory(String argument);
+
+    /***
+     * The readToken method reads a token from the remaining LogicExpression string.
+     *
+     * This is a default implementation that may be overriden.
+     * @param  remainder  the remaining text to tokenize
+     * @return  a token from the beginning on `remaining`
+     */
+    public String readToken(String remainder) {
+        Stack<Character> parens = new Stack<Character>();
+
+        boolean quoted = false;
+        char quote = ' ';
+        int nextExpression;
+        for (nextExpression = 1; nextExpression < remainder.length(); nextExpression++) {
+            char c = remainder.charAt(nextExpression);
+
+            if (c == '"' && (!quoted || quote == '"')) {
+                quoted = !quoted;
+                quote = '"';
+            }
+            if (c == '\'' & (!quoted || quote == '\'')) {
+                quoted = !quoted;
+                quote = '\'';
+            }
+            if (c == '/' & (!quoted || quote == '/')) {
+                quoted = !quoted;
+                quote = '/';
+            }
+            else if (quoted) {
+                continue;
+            }
+            else if (c == '(') {
+                parens.push(c);
+            }
+            else if (c == ')') {
+                if (parens.isEmpty()) {
+                    break;
+                }
+                else {
+                    parens.pop();
+                }
+            }
+            else if (c == '&' || c == '|') {
+                break;
+            }
+        }
+
+        String token = remainder.substring(0, nextExpression).trim();
+
+        if (token.isEmpty()) {
+            throw new TokenizeLogicException("zero-length token found.");
+        }
+
+        return token;
     }
 
+    public static <E> LogicExpression<E> compile(final String input,
+            final Function<String, Arg<E>> factoryDelegate) {
+        return new LogicExpression<E>(input) {
+            @Override
+            public Arg<E> factory(String argument) {
+                return factoryDelegate.apply(argument);
+            }
+        };
+    }
+
+    @Override
     public String toString() {
         if (this.isEmpty()) {
             return "(empty)";
@@ -98,7 +165,7 @@ public class LogicExpression<E> implements Predicate<E> {
             } else if (tok instanceof Op<?>) {
                 try {
                     if (tok instanceof Op.Mon<?>){
-                       Apply<E> sub = (Apply<E>) stack.pop();
+                       Apply<E> sub = stack.pop();
 
                         Op.Mon<E> mon = (Op.Mon<E>) tok;
 
@@ -107,8 +174,8 @@ public class LogicExpression<E> implements Predicate<E> {
                         stack.push(mon);
                     }
                     if (tok instanceof Op.Bin<?>) {
-                        Apply<E> arg2 = (Apply<E>) stack.pop();
-                        Apply<E> arg1 = (Apply<E>) stack.pop();
+                        Apply<E> arg2 = stack.pop();
+                        Apply<E> arg1 = stack.pop();
 
                         Op.Bin<E> bin = (Op.Bin<E>) tok;
 
@@ -141,7 +208,7 @@ public class LogicExpression<E> implements Predicate<E> {
                     "Stack contains non-appliable tokens after apply: " + stack.toString());
         }
 
-        return ((Apply<E>) stack.pop());
+        return (stack.pop());
     }
 
     /***
@@ -180,7 +247,7 @@ public class LogicExpression<E> implements Predicate<E> {
      *
      * @throws TokenizeLogicException
      */
-    public List<Expression<E>> tokenize(String input, Function<String, Arg<E>> factory)
+    public List<Expression<E>> tokenize(String input)
     throws TokenizeLogicException {
         List<Expression<E>> tokens = new ArrayList<Expression<E>>();
 
@@ -209,48 +276,12 @@ public class LogicExpression<E> implements Predicate<E> {
                 tokens.add(new Op.Bin.Or<E>());
                 i += 1;
             } else {
-                Stack<Character> parens = new Stack<Character>();
+                // parse out the token
+                String token = this.readToken(substring);
+                // drop those characters from the remaining text
+                substring.substring(token.length());
 
-                boolean quoted = false;
-                char quote = ' ';
-                int nextExpressionen;
-                for (nextExpressionen = 1; nextExpressionen < substring.length(); nextExpressionen++) {
-                    char c = substring.charAt(nextExpressionen);
-
-                    if (c == '"' && (!quoted || quote == '"')) {
-                        quoted = !quoted;
-                        quote = '"';
-                    }
-                    if (c == '\'' & (!quoted || quote == '\'')) {
-                        quoted = !quoted;
-                        quote = '\'';
-                    }
-                    else if (quoted) {
-                        continue;
-                    }
-                    else if (c == '(') {
-                        parens.push(c);
-                    }
-                    else if (c == ')') {
-                        if (parens.isEmpty()) {
-                            break;
-                        }
-                        else {
-                            parens.pop();
-                        }
-                    }
-                    else if (c == '&' || c == '|') {
-                        break;
-                    }
-                }
-
-                String token = substring.substring(0, nextExpressionen).trim();
-
-                if (token.isEmpty()) {
-                    throw new TokenizeLogicException("zero-length token found.");
-                }
-
-                tokens.add(factory.apply(token));
+                tokens.add(factory(token));
                 i += token.length();
             }
         }
@@ -332,5 +363,7 @@ public class LogicExpression<E> implements Predicate<E> {
             System.out.println("value:  " + expr.apply(null));
             System.out.println();
         }
+
+        scan.close();
     }
 }
