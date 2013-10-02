@@ -9,6 +9,13 @@ import edu.washington.cs.knowitall.logic.Expression.Arg;
 
 @RunWith(classOf[JUnitRunner])
 class LogicTest extends Specification with ScalaCheck {
+  "escape characters" should {
+    "tokenize ok" in {
+      val regex = compileStringMatch("\"zebra\" | \"zeb\\\"ra\"")
+      // note: escape characters are tokenized by not interpreted
+      regex("zeb\\\"ra")
+    }
+  }
   "order of operations" should {
     "infer the correct parenthesis" in {
       compile("false & false & false").toString() must_== "(false & (false & false))"
@@ -65,4 +72,6 @@ class LogicTest extends Specification with ScalaCheck {
     }
 
   def compile(logic: String) = LogicExpressions.trivial(logic)
+
+  def compileStringMatch(logic: String) = LogicExpressions.stringMatch(logic)
 }

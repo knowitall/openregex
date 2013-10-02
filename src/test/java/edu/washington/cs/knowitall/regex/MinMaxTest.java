@@ -2,6 +2,8 @@ package edu.washington.cs.knowitall.regex;
 
 import org.junit.Test;
 
+import com.google.common.collect.Lists;
+
 import java.util.Arrays;
 
 import static junit.framework.Assert.assertNotNull;
@@ -74,7 +76,7 @@ public class MinMaxTest {
         Expression<String> wordA = RegularExpressions.word("<a>").expressions.get(0);
         Expression<String> wordB = RegularExpressions.word("<b>").expressions.get(0);
         Expression<String> wordC = RegularExpressions.word("<c>").expressions.get(0);
-        return RegularExpression.compile(Arrays.asList(
+        return RegularExpression.compile(Lists.newArrayList(
                 wordA,
                 new Expression.MinMax<String>(wordB, min, max),
                 wordC)

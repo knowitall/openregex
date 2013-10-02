@@ -6,9 +6,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Stack;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 
 import edu.washington.cs.knowitall.logic.LogicException.ApplyLogicException;
 import edu.washington.cs.knowitall.logic.LogicException.CompileLogicException;
@@ -53,54 +56,68 @@ abstract public class LogicExpression<E> implements Predicate<E> {
      */
     public abstract Arg<E> factory(String argument);
 
+    private final static Pattern doubleQuoteStringLiteralRegex =
+            Pattern.compile("\"" + "((?:[^\"\\p{Cntrl}\\\\]|\\\\[\\\\'\"bfnrt]|\\\\u[a-fA-F0-9]{4})*)" + "\"");
+    private final static Pattern singleQuoteStringLiteralRegex =
+            Pattern.compile("'" + "([^']*)" + "'");
+    private final static Pattern regexLiteralRegex =
+            Pattern.compile("/" + "((?:[^/\\\\]*(?:\\\\)*(?:\\\\/)*)*)" + "/");
+    private final static List<Pattern> literalPatterns = Lists.newArrayList(
+            doubleQuoteStringLiteralRegex, singleQuoteStringLiteralRegex,
+            regexLiteralRegex);
+
     /***
      * The readToken method reads a token from the remaining LogicExpression string.
+     *
+     * A token may contain a string.  If it contains parentheses, the token
+     * will last until the parentheses are balanced.  And &, |, or unbalanced )
+     * will mark the end of a token.
      *
      * This is a default implementation that may be overriden.
      * @param  remainder  the remaining text to tokenize
      * @return  a token from the beginning on `remaining`
      */
     public String readToken(String remainder) {
-        Stack<Character> parens = new Stack<Character>();
+        final String token;
+        try {
+            Stack<Character> parens = new Stack<Character>();
 
-        boolean quoted = false;
-        char quote = ' ';
-        int nextExpression;
-        for (nextExpression = 1; nextExpression < remainder.length(); nextExpression++) {
-            char c = remainder.charAt(nextExpression);
+            int nextExpression;
+            for (nextExpression = 0; nextExpression < remainder.length(); nextExpression++) {
+                char c = remainder.charAt(nextExpression);
 
-            if (c == '"' && (!quoted || quote == '"')) {
-                quoted = !quoted;
-                quote = '"';
-            }
-            if (c == '\'' & (!quoted || quote == '\'')) {
-                quoted = !quoted;
-                quote = '\'';
-            }
-            if (c == '/' & (!quoted || quote == '/')) {
-                quoted = !quoted;
-                quote = '/';
-            }
-            else if (quoted) {
-                continue;
-            }
-            else if (c == '(') {
-                parens.push(c);
-            }
-            else if (c == ')') {
-                if (parens.isEmpty()) {
+                // check for quotation
+                String match = null;
+                for (Pattern pattern : literalPatterns) {
+                    Matcher matcher = pattern.matcher(remainder).region(
+                            nextExpression, remainder.length());
+                    if (matcher.lookingAt()) {
+                        match = matcher.group(0);
+                        break;
+                    }
+                }
+
+                if (match != null) {
+                    // we found and can consume a quotation
+                    nextExpression += match.length() - 1;
+                } else if (c == '(') {
+                    parens.push(c);
+                } else if (c == ')') {
+                    if (parens.isEmpty()) {
+                        break;
+                    } else {
+                        parens.pop();
+                    }
+                } else if (c == '&' || c == '|') {
                     break;
                 }
-                else {
-                    parens.pop();
-                }
             }
-            else if (c == '&' || c == '|') {
-                break;
-            }
-        }
 
-        String token = remainder.substring(0, nextExpression).trim();
+            token = remainder.substring(0, nextExpression).trim();
+        } catch (Exception e) {
+            throw new TokenizeLogicException("Error parsing token: "
+                    + remainder, e);
+        }
 
         if (token.isEmpty()) {
             throw new TokenizeLogicException("zero-length token found.");
@@ -278,8 +295,6 @@ abstract public class LogicExpression<E> implements Predicate<E> {
             } else {
                 // parse out the token
                 String token = this.readToken(substring);
-                // drop those characters from the remaining text
-                substring.substring(token.length());
 
                 tokens.add(factory(token));
                 i += token.length();
