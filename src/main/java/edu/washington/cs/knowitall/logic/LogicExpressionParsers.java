@@ -5,7 +5,7 @@ package edu.washington.cs.knowitall.logic;
  *
  * @author Michael Schmitz <schmmd@cs.washington.edu>
  */
-class LogicExpressions {
+class LogicExpressionParsers {
     /**
      * Logic expressions where "true" evaluates to true and "false" evaluates to
      * false. For example:
@@ -15,8 +15,8 @@ class LogicExpressions {
      * This logic expression is trivial because it's value is independent of the
      * object it is applied to.
      */
-    public static LogicExpression<String> trivial(final String expr) {
-        return new LogicExpression<String>(expr) {
+    public final static LogicExpressionParser<String> trivial =
+        new LogicExpressionParser<String>() {
             @Override
             public Expression.Arg<String> factory(final String string) {
                 return new Expression.Arg.Pred<String>(string) {
@@ -27,14 +27,13 @@ class LogicExpressions {
                 };
             }
         };
-    }
 
     /**
      * Logic expressions where tokens are strings.  A token is true if it
      * matches the input string.
      */
-    public static LogicExpression<String> stringMatch(final String expr) {
-        return new LogicExpression<String>(expr) {
+    public final static LogicExpressionParser<String> stringMatch =
+        new LogicExpressionParser<String>() {
             @Override
             public Expression.Arg<String> factory(final String token) {
                 return new Expression.Arg.Pred<String>(token) {
@@ -47,5 +46,4 @@ class LogicExpressions {
                 };
             }
         };
-    }
 }

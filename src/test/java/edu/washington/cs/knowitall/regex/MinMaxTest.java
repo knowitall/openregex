@@ -73,9 +73,9 @@ public class MinMaxTest {
     }
 
     private RegularExpression<String> getAbcRegex(int min, int max) {
-        Expression<String> wordA = RegularExpressions.word("<a>").expressions.get(0);
-        Expression<String> wordB = RegularExpressions.word("<b>").expressions.get(0);
-        Expression<String> wordC = RegularExpressions.word("<c>").expressions.get(0);
+        Expression<String> wordA = RegularExpressionParsers.word.parse("<a>").expressions.get(0);
+        Expression<String> wordB = RegularExpressionParsers.word.parse("<b>").expressions.get(0);
+        Expression<String> wordC = RegularExpressionParsers.word.parse("<c>").expressions.get(0);
         return RegularExpression.compile(Lists.newArrayList(
                 wordA,
                 new Expression.MinMax<String>(wordB, min, max),

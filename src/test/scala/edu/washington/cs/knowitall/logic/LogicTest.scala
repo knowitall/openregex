@@ -71,7 +71,7 @@ class LogicTest extends Specification with ScalaCheck {
       expr.replace(v.toString(), arg.toString);
     }
 
-  def compile(logic: String) = LogicExpressions.trivial(logic)
+  def compile(logic: String): LogicExpression[String] = LogicExpressionParsers.trivial.parse(logic)
 
-  def compileStringMatch(logic: String) = LogicExpressions.stringMatch(logic)
+  def compileStringMatch(logic: String): LogicExpression[String] = LogicExpressionParsers.stringMatch.parse(logic)
 }
