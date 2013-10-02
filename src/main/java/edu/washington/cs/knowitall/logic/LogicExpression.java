@@ -37,7 +37,7 @@ abstract public class LogicExpression<E> implements Predicate<E> {
      * @throws TokenizeLogicException
      * @throws CompileLogicException
      */
-    protected LogicExpression(String input)
+    public LogicExpression(String input)
             throws TokenizeLogicException, CompileLogicException {
         // convert to tokens
         List<Expression<E>> tokens = tokenize(input);
@@ -126,6 +126,12 @@ abstract public class LogicExpression<E> implements Predicate<E> {
         return token;
     }
 
+    /***
+     * Helper factory method to instantiate a LogicExpression.
+     * @param  input  The string to parse.
+     * @param  factoryDelegate  The factory to build tokens.
+     * @return  a new LogicExpression
+     */
     public static <E> LogicExpression<E> compile(final String input,
             final Function<String, Arg<E>> factoryDelegate) {
         return new LogicExpression<E>(input) {
