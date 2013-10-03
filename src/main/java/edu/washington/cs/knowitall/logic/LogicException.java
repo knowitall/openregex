@@ -11,11 +11,19 @@ public class LogicException extends RuntimeException {
         super(message);
     }
 
+    public LogicException(String message, Exception e) {
+        super(message, e);
+    }
+
     /**
      * Exception while applying an expression to an object.
      */
     public static class ApplyLogicException extends LogicException {
         private static final long serialVersionUID = 1L;
+
+        public ApplyLogicException(String message, Exception e) {
+            super(message, e);
+        }
 
         public ApplyLogicException(String message) {
             super(message);
@@ -28,6 +36,10 @@ public class LogicException extends RuntimeException {
     public static class CompileLogicException extends LogicException {
         private static final long serialVersionUID = 1L;
 
+        public CompileLogicException(String message, Exception e) {
+            super(message, e);
+        }
+
         public CompileLogicException(String message) {
             super(message);
         }
@@ -38,6 +50,10 @@ public class LogicException extends RuntimeException {
      */
     public static class TokenizeLogicException extends LogicException {
         private static final long serialVersionUID = 1L;
+
+        public TokenizeLogicException(String message, Exception e) {
+            super(message, e);
+        }
 
         public TokenizeLogicException(String message) {
             super(message);

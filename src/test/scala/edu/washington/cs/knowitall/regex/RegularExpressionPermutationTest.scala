@@ -23,7 +23,7 @@ class RegularExpressionPermutationTest extends Specification {
   tokens.permutations.foreach { permutation =>
     permutation.mkString("'", " ", "'") should {
       "match sentences correctly" in {
-        val regex = RegularExpressions.word(permutation.mkString(" "))
+        val regex = RegularExpressionParsers.word.parse(permutation.mkString(" "))
 
         { test: TestCase =>
           regex.matches(test.tokens) aka test.tokens.mkString("'", " ", "'") must beTrue.iff(test.value)

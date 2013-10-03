@@ -10,10 +10,10 @@ class RegularExpressionAssertionTest extends Specification {
   val regexTokens = List("^", "<is>", "<a>", "$")
   val matchTokens = List("this", "is", "a", "test")
 
-  val regex = RegularExpressions.word(regexTokens.tail.init.mkString(" "))
-  val regexEnd = RegularExpressions.word(regexTokens.tail.mkString(" "))
-  val regexStart = RegularExpressions.word(regexTokens.init.mkString(" "))
-  val regexBoth = RegularExpressions.word(regexTokens.mkString(" "))
+  val regex = RegularExpressionParsers.word.parse(regexTokens.tail.init.mkString(" "))
+  val regexEnd = RegularExpressionParsers.word.parse(regexTokens.tail.mkString(" "))
+  val regexStart = RegularExpressionParsers.word.parse(regexTokens.init.mkString(" "))
+  val regexBoth = RegularExpressionParsers.word.parse(regexTokens.mkString(" "))
 
   def evaluate(regex: RegularExpression[String], tokens: List[String], value: Boolean) =
     (if (value) "" else "not ") + "be found in '" + tokens.mkString(" ") + "': " in {

@@ -7,16 +7,16 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Stack;
 
-import com.google.common.base.Predicate;
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 
+import edu.washington.cs.knowitall.logic.Expression.Apply;
+import edu.washington.cs.knowitall.logic.Expression.Arg;
+import edu.washington.cs.knowitall.logic.Expression.Op;
+import edu.washington.cs.knowitall.logic.Expression.Paren;
 import edu.washington.cs.knowitall.logic.LogicException.ApplyLogicException;
 import edu.washington.cs.knowitall.logic.LogicException.CompileLogicException;
 import edu.washington.cs.knowitall.logic.LogicException.TokenizeLogicException;
-import edu.washington.cs.knowitall.logic.Expression.Apply;
-import edu.washington.cs.knowitall.logic.Expression.Op;
-import edu.washington.cs.knowitall.logic.Expression.Arg;
-import edu.washington.cs.knowitall.logic.Expression.Paren;
 
 /**
  * A logic expression engine that operates over user specified objects.
@@ -31,28 +31,45 @@ public class LogicExpression<E> implements Predicate<E> {
     /***
      *
      * @param input an infix representation of the logic expression.
-     * @param factory a delegate to convert the string representation of an
-     * expression to a token.
      * @throws TokenizeLogicException
      * @throws CompileLogicException
      */
-    protected LogicExpression(String input, Function<String, Arg<E>> factory)
+    protected LogicExpression(List<Expression<E>> expressions)
             throws TokenizeLogicException, CompileLogicException {
-        // convert to tokens
-        List<Expression<E>> tokens = tokenize(input, factory);
-
         // put in reverse polish notation
-        List<Expression<E>> rpn = rpn(tokens);
+        List<Expression<E>> rpn = rpn(expressions);
 
         // compile the expression
-        expression = compile(rpn);
+        expression = buildAst(rpn);
     }
 
-    public static <E> LogicExpression<E> compile(String input,
-            Function<String, Arg<E>> factory) {
-        return new LogicExpression<E>(input, factory);
+    /***
+     * Compile an infix list of tokens into an expression tree.
+     * @param rpn a list of tokens in infix form.
+     * @return an expression tree.
+     */
+    public static <E> LogicExpression<E> compile(
+            final List<Expression<E>> expressions) {
+        return new LogicExpression<E>(expressions);
     }
 
+    /***
+     * Helper factory method to instantiate a LogicExpression.
+     * @param  input  The string to parse.
+     * @param  factoryDelegate  The factory to build tokens.
+     * @return  a new LogicExpression
+     */
+    public static <E> LogicExpression<E> compile(final String input,
+            final Function<String, Arg<E>> factoryDelegate) {
+        return new LogicExpressionParser<E>() {
+            @Override
+            public Arg<E> factory(String argument) {
+                return factoryDelegate.apply(argument);
+            }
+        }.parse(input);
+    }
+
+    @Override
     public String toString() {
         if (this.isEmpty()) {
             return "(empty)";
@@ -86,7 +103,7 @@ public class LogicExpression<E> implements Predicate<E> {
      * @param rpn a list of tokens in infix form.
      * @return an expression tree.
      */
-    public Apply<E> compile(List<Expression<E>> rpn) {
+    public static <E> Apply<E> buildAst(List<Expression<E>> rpn) {
         if (rpn.isEmpty()) {
             return null;
         }
@@ -98,7 +115,7 @@ public class LogicExpression<E> implements Predicate<E> {
             } else if (tok instanceof Op<?>) {
                 try {
                     if (tok instanceof Op.Mon<?>){
-                       Apply<E> sub = (Apply<E>) stack.pop();
+                       Apply<E> sub = stack.pop();
 
                         Op.Mon<E> mon = (Op.Mon<E>) tok;
 
@@ -107,8 +124,8 @@ public class LogicExpression<E> implements Predicate<E> {
                         stack.push(mon);
                     }
                     if (tok instanceof Op.Bin<?>) {
-                        Apply<E> arg2 = (Apply<E>) stack.pop();
-                        Apply<E> arg1 = (Apply<E>) stack.pop();
+                        Apply<E> arg2 = stack.pop();
+                        Apply<E> arg1 = stack.pop();
 
                         Op.Bin<E> bin = (Op.Bin<E>) tok;
 
@@ -141,7 +158,7 @@ public class LogicExpression<E> implements Predicate<E> {
                     "Stack contains non-appliable tokens after apply: " + stack.toString());
         }
 
-        return ((Apply<E>) stack.pop());
+        return (stack.pop());
     }
 
     /***
@@ -170,92 +187,6 @@ public class LogicExpression<E> implements Predicate<E> {
         else if (apply instanceof Arg.Pred<?>) {
             args.add(((Arg.Pred<?>)apply).getDescription());
         }
-    }
-
-    /***
-     * Convert an infix string logic representation to an infix list of tokens.
-     * @param input an infix string logic representation.
-     * @param factory a delegate that converts a string representation of an
-     * argument into a token object.  @return
-     *
-     * @throws TokenizeLogicException
-     */
-    public List<Expression<E>> tokenize(String input, Function<String, Arg<E>> factory)
-    throws TokenizeLogicException {
-        List<Expression<E>> tokens = new ArrayList<Expression<E>>();
-
-        int i = 0;
-        while (i < input.length()) {
-            String substring = input.substring(i);
-            char firstChar = substring.charAt(0);
-
-            if (firstChar == ' ') {
-                i += 1;
-                continue;
-            }
-            else if (firstChar == '(') {
-                tokens.add(new Paren.L<E>());
-                i += 1;
-            } else if (firstChar == ')') {
-                tokens.add(new Paren.R<E>());
-                i += 1;
-            } else if (firstChar == '!') {
-                tokens.add(new Op.Mon.Not<E>());
-                i += 1;
-            } else if (firstChar == '&') {
-                tokens.add(new Op.Bin.And<E>());
-                i += 1;
-            } else if (firstChar == '|') {
-                tokens.add(new Op.Bin.Or<E>());
-                i += 1;
-            } else {
-                Stack<Character> parens = new Stack<Character>();
-
-                boolean quoted = false;
-                char quote = ' ';
-                int nextExpressionen;
-                for (nextExpressionen = 1; nextExpressionen < substring.length(); nextExpressionen++) {
-                    char c = substring.charAt(nextExpressionen);
-
-                    if (c == '"' && (!quoted || quote == '"')) {
-                        quoted = !quoted;
-                        quote = '"';
-                    }
-                    if (c == '\'' & (!quoted || quote == '\'')) {
-                        quoted = !quoted;
-                        quote = '\'';
-                    }
-                    else if (quoted) {
-                        continue;
-                    }
-                    else if (c == '(') {
-                        parens.push(c);
-                    }
-                    else if (c == ')') {
-                        if (parens.isEmpty()) {
-                            break;
-                        }
-                        else {
-                            parens.pop();
-                        }
-                    }
-                    else if (c == '&' || c == '|') {
-                        break;
-                    }
-                }
-
-                String token = substring.substring(0, nextExpressionen).trim();
-
-                if (token.isEmpty()) {
-                    throw new TokenizeLogicException("zero-length token found.");
-                }
-
-                tokens.add(factory.apply(token));
-                i += token.length();
-            }
-        }
-
-        return tokens;
     }
 
     /***
@@ -326,11 +257,13 @@ public class LogicExpression<E> implements Predicate<E> {
         while (scan.hasNextLine()) {
             String line = scan.nextLine();
 
-            LogicExpression<String> expr = LogicExpressions.trivial(line);
+            LogicExpression<String> expr = LogicExpressionParsers.trivial.parse(line);
 
             System.out.println("string: " + expr.toString());
             System.out.println("value:  " + expr.apply(null));
             System.out.println();
         }
+
+        scan.close();
     }
 }
