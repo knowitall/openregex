@@ -45,11 +45,11 @@ abstract public class LogicExpressionParser<E> implements Function<String, Logic
     public abstract Arg<E> factory(String argument);
 
     public final static Pattern doubleQuoteStringLiteralRegex =
-            Pattern.compile("\"" + "((?:[^\"\\p{Cntrl}\\\\]|\\\\[\\\\'\"bfnrt]|\\\\u[a-fA-F0-9]{4})*)" + "\"");
+            Pattern.compile("\"" + "([^\"\\p{Cntrl}\\\\]*+(?:\\\\[\\\\'\"bfnrt])*+(?:\\\\u[a-fA-F0-9]{4})*+)*+" + "\"");
     public final static Pattern singleQuoteStringLiteralRegex =
-            Pattern.compile("'" + "([^']*)" + "'");
+            Pattern.compile("'" + "(?:[^']*+)" + "'");
     public final static Pattern regexLiteralRegex =
-            Pattern.compile("/" + "((?:[^/\\\\]*(?:\\\\)*(?:\\\\/)*)*)" + "/");
+            Pattern.compile("/" + "(?:(?:[^/\\\\]*+(?:\\\\)*+(?:\\\\/)*+)*+)" + "/");
     private final static List<Pattern> literalPatterns = Lists.newArrayList(
             doubleQuoteStringLiteralRegex, singleQuoteStringLiteralRegex,
             regexLiteralRegex);
