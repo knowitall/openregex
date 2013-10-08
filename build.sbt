@@ -8,7 +8,7 @@ version := "1.1.2-SNAPSHOT"
 
 libraryDependencies ++= Seq("com.google.code.findbugs" % "jsr305" % "2.0.1",
     "com.google.guava" % "guava" % "15.0",
-    "org.scala-lang" % "scala-library" % "2.10.2",
+    "org.scala-lang" % "scala-library" % "2.10.2" % "test",
     "junit" % "junit" % "4.10" % "test",
     "org.specs2" % "specs2_2.10" % "2.2.2" % "test",
     "org.scalacheck" % "scalacheck_2.10" % "1.10.1" % "test")
