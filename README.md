@@ -28,24 +28,30 @@ such as OpenNLP can help out here).  We will also need to define a way to
 translate each token in the expression (text between <angled brackets>) into
 an expression that can be applied to a word token.
 
-    def compile(expr: String): RegularExpression[WordToken] = {
-      // Translate an string "part=value" into a BaseExpression that
-      // checks whether the part of a WordToken has value 'value'. */
-      val factory = new ExpressionFactory<ChunkedSentenceToken>() {
-        new Expression.BaseExpression[ChunkedSentenceToken](expression) {
-          val Array(part, value) = expr.split("=")
-          override def apply(entity: WordToken) = {
-            part match {
-              case "string" => entity.string == value
-              case "postag" => entity.postag == value
-              case "chunk" => entity.chunk == value
+  def compile(string: String): RegularExpression[WordToken] = {
+    // create a parser for regular expression language that have
+    // the same token representation
+    val parser =
+      new RegularExpressionParser[WordToken]() {
+        // Translate an string "part=value" into a BaseExpression that
+        // checks whether the part of a WordToken has value 'value'.
+        override def factory(string: String): BaseExpression[WordToken] = {
+          new BaseExpression[WordToken](string) {
+            val Array(part, quotedValue) = string.split("=")
+            val value = quotedValue.drop(1).take(quotedValue.size - 2)
+            override def apply(entity: WordToken) = {
+              part match {
+                case "string" => entity.string equalsIgnoreCase value
+                case "postag" => entity.postag equalsIgnoreCase value
+                case "chunk" => entity.chunk equalsIgnoreCase value
+              }
             }
           }
         }
       }
 
-      RegularExpression.compile(expr, factory)
-    }
+    parser.parse(string)
+  }
 
 Now we can compile a regular expression and apply it to a sentence.  Consider
 the following pattern.  The first line defines a non-matching group that
@@ -53,20 +59,20 @@ matches a determiner ("a", "an", or "the").  The second line matches a sequence
 of part-of-speech tags ("JJ" is adjective, "NNP" is proper noun, and "NN" is
 common noun).
 
-    (?:<string="a"> | <string="an"> | <string="the">)?
+    (?:<string='a'> | <string='an'> | <string='the'>)?
     <postag="JJ">* <postag='NNP'>+ <postag='NN'>+ <postag='NNP'>+
 
 We can try applying it to a couple of sentences.
 
 1.  The US president Barack Obama is travelling to Mexico.
 
-    regex.find(sentence).groups.get(0) == "The US president Barack Obama"
+    regex.find(sentence).groups.get(0) matches "The US president Barack Obama"
 
 
 2.  If all the ice melted from the frigid Earth continent Antarctica, sea
     levels would rise hundreds of feet.
 
-    regex.find(sentence).groups.get(0) == "the frigid Earth continent Antarctica"
+    regex.find(sentence).groups.get(0) matches "the frigid Earth continent Antarctica"
 
 
 We may want to pull out the text from certain parts of our match.  We can do
@@ -76,14 +82,14 @@ the pattern and the sentence in example 2.
       (?:<string="a"> | <string="an"> | <string="the">)? <postag="JJ">*
       (<arg1>:<postag='NNP'>+) (<rel>:<postag='NN'>+) (<arg2>:<postag='NNP'>+)
 
-      regex.find(sentence).groups.get(0) == "the frigid Earth continent Antarctica"
-      regex.find(sentence).groups.get(1) == "Earth"
-      regex.find(sentence).groups.get(2) == "continent"
-      regex.find(sentence).groups.get(2) == "Antarctica"
+      regex.find(sentence).groups.get(0) matches "the frigid Earth continent Antarctica"
+      regex.find(sentence).groups.get(1) matches "Earth"
+      regex.find(sentence).groups.get(2) matches "continent"
+      regex.find(sentence).groups.get(2) matches "Antarctica"
 
-      regex.find(sentence).group("arg1") == "Earth"
-      regex.find(sentence).group("rel")  == "continent"
-      regex.find(sentence).group("arg2") == "Antarctica"
+      regex.find(sentence).group("arg1") matches "Earth"
+      regex.find(sentence).group("rel")  matches "continent"
+      regex.find(sentence).group("arg2") matches "Antarctica"
 
 ## Supported Constructs
 
@@ -121,9 +127,7 @@ considered.  This factory is used in the test cases.
 You can also play around with RegularExpressions.word by running the main
 method in RegularExpression and specifying an expression with arg1.
 
-    mvn compile exec:java
-        -Dexec.mainClass=edu.washington.cs.knowitall.regex.RegularExpression
-        -Dexec.args="<the> <fat>* <cows> <are> <mooing> (?:<loudly>)?"
+    sbt 'run-main edu.washington.cs.knowitall.regex.RegularExpression "<the> <fat>* <cows> <are> <mooing> (?:<loudly>)?"'
 
 
 ## Logic Expressions
@@ -141,11 +145,11 @@ rewriting the apply method in BaseExpression inside the compile method.
 Most of the code below existed before--now it's just moved outside the
 apply method.
 
-    val logic = LogicExpression.compile(value,
-    new Function[String, Tok.Arg[WordToken]]() {
-      override def apply(expr: String) = {
-        new Arg.Pred[String](expr) {
-          val Array(part, value) = expr.split("=")
+    val logic = new LogicExpressionParser[WordToken] {
+      override def factory(expr: String) = {
+        new Arg.Pred[WordToken](expr) {
+          val Array(part, quotedValue) = expr.split("=")
+          val value = quotedValue.drop(1).take(quotedValue.size - 2)
           override def apply(entity: WordToken) = part match {
             case "string" => entity.string == value
             case "postag" => entity.postag == value
@@ -153,7 +157,7 @@ apply method.
           }
         }
       }
-    }
+    }.parse(value)
 
     override def apply(entity: WordToken) = {
       logic.apply(entity)
@@ -161,7 +165,10 @@ apply method.
 
 Play around with logic expression by using the main method in LogicExpression.
 
-    mvn exec:java -Dexec.mainClass=edu.washington.cs.knowitall.logic.LogicExpression
+    sbt 'run-main edu.washington.cs.knowitall.logic.LogicExpression'
+ 
+You can enter logic expressions such as "true & false" or "true | false" and
+have them evaluated interactively.
 
 
 ## Implementation
