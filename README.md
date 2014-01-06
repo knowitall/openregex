@@ -28,6 +28,7 @@ such as OpenNLP can help out here).  We will also need to define a way to
 translate each token in the expression (text between <angled brackets>) into
 an expression that can be applied to a word token.
 
+```
   def compile(string: String): RegularExpression[WordToken] = {
     // create a parser for regular expression language that have
     // the same token representation
@@ -52,6 +53,7 @@ an expression that can be applied to a word token.
 
     parser.parse(string)
   }
+```
 
 Now we can compile a regular expression and apply it to a sentence.  Consider
 the following pattern.  The first line defines a non-matching group that
@@ -66,19 +68,22 @@ We can try applying it to a couple of sentences.
 
 1.  The US president Barack Obama is travelling to Mexico.
 
+```
     regex.find(sentence).groups.get(0) matches "The US president Barack Obama"
-
+```
 
 2.  If all the ice melted from the frigid Earth continent Antarctica, sea
     levels would rise hundreds of feet.
 
+```
     regex.find(sentence).groups.get(0) matches "the frigid Earth continent Antarctica"
-
+```
 
 We may want to pull out the text from certain parts of our match.  We can do
 this with either named or unnamed groups.  Consider the following new form of
 the pattern and the sentence in example 2.
 
+```
       (?:<string="a"> | <string="an"> | <string="the">)? <postag="JJ">*
       (<arg1>:<postag='NNP'>+) (<rel>:<postag='NN'>+) (<arg2>:<postag='NNP'>+)
 
@@ -90,11 +95,13 @@ the pattern and the sentence in example 2.
       regex.find(sentence).group("arg1") matches "Earth"
       regex.find(sentence).group("rel")  matches "continent"
       regex.find(sentence).group("arg2") matches "Antarctica"
+```
 
 ## Supported Constructs
 
 The regular expression library supports the following constructs.
 
+```
     | alternation
     ? option
     * Kleene-star
@@ -105,11 +112,12 @@ The regular expression library supports the following constructs.
     ()        matching groups
     (?:)      non-matching groups
     (<name>:) named groups
+```
 
 Most of these operators work the same as in java.util.regex.  Presently,
-however, alternation binds to its immediate neighbors.  This means that `<a>
-<b> | <c>` means `<a> (?:<b> | <c>)` whereas in Java it would mean `(?:<a> <b>)
-| <c>`.  This may change in a future release so it is advised that the
+however, alternation binds to its immediate neighbors.  This means that `<a> <b> | <c>`
+means `<a> (?:<b> | <c>)` whereas in Java it would mean `(?:<a> <b>) | <c>`.
+This may change in a future release so it is advised that the
 alternation arguments be made explicit with non-matching groups.
 
 All operators are greedy, and there are no non-greedy counterparts.
@@ -138,13 +146,16 @@ able to check multiple fields in a single regular expression token.  If you
 assumed each regular expression token to be a logic expression, you could
 write patterns such as the following.
 
+```
     <string="the" & postag="DT"> <postag="JJ"> <string="earth" | postag="NNP">
+```
 
 Extending the regular expression in this way is easy.  It only involves
 rewriting the apply method in BaseExpression inside the compile method.
 Most of the code below existed before--now it's just moved outside the
 apply method.
 
+```
     val logic = new LogicExpressionParser[WordToken] {
       override def factory(expr: String) = {
         new Arg.Pred[WordToken](expr) {
@@ -162,6 +173,7 @@ apply method.
     override def apply(entity: WordToken) = {
       logic.apply(entity)
     }
+```
 
 Play around with logic expression by using the main method in LogicExpression.
 
