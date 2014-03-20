@@ -7,7 +7,7 @@ import edu.washington.cs.knowitall.regex.Expression.BaseExpression;
  *
  * @author Michael Schmitz <schmmd@cs.washington.edu>
  */
-class RegularExpressionParsers {
+public class RegularExpressionParsers {
     /**
      * Regular expressions over words where sequences are string
      * representations of words.
